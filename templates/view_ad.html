@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ ad.title }} - قشاقيش</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .ad-images-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .gallery-image {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .gallery-image:hover {
+            transform: scale(1.02);
+        }
+        .gallery-image img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+        .main-image {
+            margin-bottom: 20px;
+        }
+        .main-image img {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 16px;
+            background: #f5f5f5;
+        }
+        .no-image {
+            text-align: center;
+            padding: 50px;
+            background: #f8f9fa;
+            border-radius: 16px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="{{ url_for('index') }}" class="logo">Zoon</a>
+        <nav class="navbar">
+            <span class="welcome-text">مرحباً {{ username }}!</span>
+            <a href="{{ url_for('index') }}">الرئيسية</a>
+            <a href="{{ url_for('my_ads') }}">إعلاناتي</a>
+            <a href="{{ url_for('add') }}">إضافة إعلان</a>
+            <a href="{{ url_for('logout') }}" class="logout-btn">تسجيل خروج</a>
+        </nav>
+    </header>
+
+    <div class="main-container">
+        <div class="ad-detail-box">
+            <!-- عرض الصور المتعددة -->
+            {% if ad.images_list and ad.images_list|length > 0 %}
+                {% if ad.images_list|length == 1 %}
+                    <div class="main-image">
+                        <img src="{{ url_for('static', filename='uploads/' + ad.images_list[0]) }}" alt="{{ ad.title }}">
+                    </div>
+                {% else %}
+                    <div class="ad-images-gallery">
+                        {% for img in ad.images_list %}
+                        <div class="gallery-image" onclick="openModal('{{ url_for('static', filename='uploads/' + img) }}')">
+                            <img src="{{ url_for('static', filename='uploads/' + img) }}" alt="{{ ad.title }}">
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="no-image">
+                    <p>📷 لا توجد صور لهذا الإعلان</p>
+                </div>
+            {% endif %}
+            
+            <h1>{{ ad.title }}</h1>
+            
+            <div class="ad-info">
+                <div class="info-row">
+                    <span class="info-label">القسم:</span>
+                    <span class="info-value">{{ ad.category }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">المدينة:</span>
+                    <span class="info-value">{{ ad.city }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">السعر الأصلي:</span>
+                    <span class="info-value">{{ ad.price }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">عمولة الموقع (15%):</span>
+                    <span class="info-value">{{ (ad.price_value * commission_rate)|round(2) if ad.price_value > 0 else 0 }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">السعر النهائي:</span>
+                    <span class="info-value price">{{ (ad.price_value * (1 + commission_rate))|round(2) if ad.price_value > 0 else ad.price }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">الناشر:</span>
+                    <span class="info-value">{{ ad.username }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">رقم الجوال:</span>
+                    <span class="info-value phone">{{ ad.phone }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">تاريخ النشر:</span>
+                    <span class="info-value">{{ ad.date }}</span>
+                </div>
+            </div>
+            
+            <div class="ad-description-full">
+                <h3>وصف الإعلان:</h3>
+                <p>{{ ad.description }}</p>
+            </div>
+
+            
+            
+            <div class="ad-detail-actions">
+                <a href="https://wa.me/{{ ad.phone }}?text=مرحباً، أرغب في الاستفسار عن إعلانك في Zoon: {{ ad.title }}" 
+                   class="whatsapp-contact-btn" target="_blank">
+                    📱 تواصل عبر واتساب
+                </a>
+                <a href="{{ url_for('index') }}" class="back-btn">العودة للإعلانات</a>
+                {% if ad.username == username %}
+                <a href="{{ url_for('edit_ad', ad_id=ad.id) }}" class="edit-btn">تعديل الإعلان</a>
+                <a href="{{ url_for('delete_ad', ad_id=ad.id) }}" class="delete-btn" 
+                   onclick="return confirm('هل أنت متأكد من حذف هذا الإعلان؟')">حذف الإعلان</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(imageSrc) {
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.9)';
+            modal.style.zIndex = '9999';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.cursor = 'pointer';
+            
+            const img = document.createElement('img');
+            img.src = imageSrc;
+            img.style.maxWidth = '90%';
+            img.style.maxHeight = '90%';
+            img.style.borderRadius = '8px';
+            
+            modal.appendChild(img);
+            modal.onclick = function() {
+                document.body.removeChild(modal);
+            };
+            
+            document.body.appendChild(modal);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قشاقيش - {{ site_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <a href="{{ url_for('index') }}" class="logo">{{ site_name }}</a>
+        <nav class="navbar">
+            <span class="welcome-text">مرحباً {{ username }}!</span>
+            <a href="{{ url_for('index') }}">🏠 الرئيسية</a>
+            <a href="{{ url_for('add') }}">➕ إضافة إعلان</a>
+            <a href="{{ url_for('logout') }}" class="logout-btn">🚪 تسجيل خروج</a>
+        </nav>
+    </header>
+
+    <div class="main-container">
+        <h2 class="page-title">📋 إعلاناتي</h2>
+        
+        <div class="ads-grid">
+            {% if ads and ads|length > 0 %}
+                {% for ad in ads %}
+                <div class="ad-card" data-ad-id="{{ ad.id }}">
+                    <div class="ad-image">
+                        {% set images_list = ad.images_list if ad.images_list is defined and ad.images_list else [] %}
+                        
+                        {% if images_list and images_list|length > 0 %}
+                            <img src="{{ url_for('static', filename='uploads/' + images_list[0]) }}" 
+                                 alt="{{ ad.title }}"
+                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\' viewBox=\'0 0 24 24\' fill=\'%23ccc\'%3E%3Cpath d=\'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 8h-4v4h-4v-4H6V9h4V5h4v4h4v2z\'/%3E%3C/svg%3E'">
+                            <div class="image-count">
+                                📸 {{ images_list|length }}/{{ max_images }}
+                            </div>
+                        {% else %}
+                            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white; font-size: 3rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                🖼️
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h3>{{ ad.title }}</h3>
+                    <div class="ad-details">
+                        <p><strong>📂 القسم:</strong> {{ ad.category }}</p>
+                        <p><strong>📍 المدينة:</strong> {{ ad.city }}</p>
+                        <p><strong>💰 السعر:</strong> {{ ad.price }}</p>
+                        <p><strong>📞 الجوال:</strong> {{ ad.phone }}</p>
+                        {% if ad.commission > 0 %}
+                        <p><strong>🏦 العمولة (15%):</strong> {{ "%.2f"|format(ad.commission) }} ليرة,دولار</p>
+                        {% endif %}
+                    </div>
+                    <p class="ad-description">
+                        {{ ad.description[:120] }}{% if ad.description|length > 120 %}...{% endif %}
+                    </p>
+                    <div class="ad-actions">
+                        <a href="{{ url_for('view_ad', ad_id=ad.id) }}" class="view-btn">👁️ عرض</a>
+                        <a href="{{ url_for('edit_ad', ad_id=ad.id) }}" class="edit-btn">✏️ تعديل</a>
+                        <a href="{{ url_for('delete_ad', ad_id=ad.id) }}" class="delete-btn" 
+                           onclick="return confirm('⚠️ هل أنت متأكد من حذف هذا الإعلان؟\n\nسيتم حذف الإعلان وجميع صوره بشكل دائم.')">🗑️ حذف</a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-ads">
+                    <p>📭 لم تقم بإضافة أي إعلانات بعد</p>
+                    <a href="{{ url_for('add') }}" class="add-first-ad">➕ أضف إعلانك الأول</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // معالجة أي صور لا يتم تحميلها بشكل صحيح
+        document.querySelectorAll('.ad-image img').forEach(img => {
+            img.addEventListener('error', function() {
+                if (!this.hasAttribute('data-error-handled')) {
+                    this.setAttribute('data-error-handled', 'true');
+                    this.src = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\' viewBox=\'0 0 24 24\' fill=\'%23ccc\'%3E%3Cpath d=\'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 8h-4v4h-4v-4H6V9h4V5h4v4h4v2z\'/%3E%3C/svg%3E';
+                    this.style.objectFit = 'contain';
+                    this.style.background = '#f0f0f0';
+                }
+            });
+        });
+        
+        // إضافة تأكيد حذف محسن
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const confirmed = confirm('⚠️ تحذير!\n\nهل أنت متأكد من حذف هذا الإعلان؟\nسيتم حذف الإعلان وجميع صوره بشكل دائم ولا يمكن التراجع.');
+                if (!confirmed) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

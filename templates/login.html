@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - قشاقيش</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="login-box">
+            <h2>تسجيل الدخول</h2>
+            
+            {% if error %}
+                <div class="error-message">{{ error }}</div>
+            {% endif %}
+            
+            <form method="POST" action="{{ url_for('login') }}">
+                <div class="input-group">
+                    <label for="username">اسم المستخدم</label>
+                    <input type="text" id="username" name="username" required 
+                           placeholder="أدخل اسم المستخدم">
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">كلمة المرور</label>
+                    <input type="password" id="password" name="password" required 
+                           placeholder="أدخل كلمة المرور">
+                </div>
+                
+                <!-- إضافة خيار تذكرني -->
+                <div class="checkbox-group">
+                    <label class="remember-me">
+                        <input type="checkbox" name="remember_me"> 
+                        <span>تذكرني</span>
+                    </label>
+                </div>
+                
+                <button type="submit" class="login-btn">دخول</button>
+            </form>
+            
+            <div class="divider">
+                <span>أو</span>
+            </div>
+            
+            <div class="links">
+                <p>ليس لديك حساب؟ <a href="{{ url_for('register') }}">إنشاء حساب جديد</a></p>
+                <a href="#">نسيت كلمة المرور؟</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

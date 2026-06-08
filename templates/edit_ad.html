@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تعديل الإعلان - قشاقيش</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .existing-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .existing-image-item {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #ddd;
+        }
+        .existing-image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .delete-image-checkbox {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        .delete-image-checkbox input {
+            margin-left: 5px;
+        }
+        .images-upload {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            background: #f9f9f9;
+            margin-bottom: 15px;
+        }
+        .images-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .preview-item {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #ddd;
+        }
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .remove-image {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: red;
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="{{ url_for('index') }}" class="logo">Zoon</a>
+        <nav class="navbar">
+            <a href="{{ url_for('index') }}">الرئيسية</a>
+            <a href="{{ url_for('my_ads') }}">إعلاناتي</a>
+            <a href="{{ url_for('logout') }}" class="logout-btn">تسجيل خروج</a>
+        </nav>
+    </header>
+
+    <div class="form-container">
+        <div class="add-ad-box">
+            <h2>تعديل الإعلان</h2>
+            
+            {% if errors %}
+                <div class="error-message">
+                    {% for error in errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <form method="POST" action="{{ url_for('edit_ad', ad_id=ad.id) }}" class="ad-form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="title">عنوان الإعلان *</label>
+                    <input type="text" id="title" name="title" required 
+                           value="{{ ad.title }}">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="category">القسم *</label>
+                        <select id="category" name="category" required>
+                            {% for cat in categories %}
+                            <option value="{{ cat }}" {% if ad.category == cat %}selected{% endif %}>{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="city">المدينة *</label>
+                        <select id="city" name="city" required>
+                            {% for city in cities %}
+                            <option value="{{ city }}" {% if ad.city == city %}selected{% endif %}>{{ city }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="price">السعر (ليرة او دولار)</label>
+                        <input type="number" id="price" name="price" step="0.01"
+                               value="{{ ad.price if ad.price != 'غير محدد' else '' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">رقم الجوال *</label>
+                        <input type="tel" id="phone" name="phone" required 
+                               value="{{ ad.phone }}">
+                    </div>
+                </div>
+                
+                <!-- الصور الموجودة -->
+                {% if ad.images_list and ad.images_list|length > 0 %}
+                <div class="form-group">
+                    <label>الصور الحالية (اختر للحذف)</label>
+                    <div class="existing-images">
+                        {% for img in ad.images_list %}
+                        <div class="existing-image-item">
+                            <img src="{{ url_for('static', filename='uploads/' + img) }}" alt="صورة المنتج">
+                            <label class="delete-image-checkbox">
+                                <input type="checkbox" name="delete_images" value="{{ img }}"> حذف
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- إضافة صور جديدة -->
+                <div class="images-upload">
+                    <label class="images-label">إضافة صور جديدة (اختياري - حتى 5 صور)</label>
+                    <input type="file" id="product_images" name="product_images" multiple 
+                           accept="image/png, image/jpeg, image/jpg, image/gif, image/webp"
+                           onchange="previewImages(this)">
+                    <small class="form-help">يمكنك اختيار حتى 5 صور إضافية. الصور المدعومة: PNG, JPG, JPEG, GIF, WEBP (حد أقصى 16MB لكل صورة)</small>
+                    <div class="image-counter" id="imageCounter">0 من 5 صور تم اختيارها</div>
+                    <div class="images-preview" id="imagesPreview"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">وصف الإعلان *</label>
+                    <textarea id="description" name="description" rows="6" required>{{ ad.description }}</textarea>
+                </div>
+                
+                <div class="info-box">
+                    <p>💡 ملاحظة: سيتم إضافة عمولة 15% عند عرض السعر</p>
+                    {% if ad.price and ad.price != 'غير محدد' %}
+                    <p>💰 السعر بعد العمولة: {{ (ad.price_value * 1.15)|round(2) }} (شامل العمولة)</p>
+                    {% endif %}
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn">حفظ التعديلات</button>
+                    <a href="{{ url_for('view_ad', ad_id=ad.id) }}" class="cancel-btn">إلغاء</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function previewImages(input) {
+            const preview = document.getElementById('imagesPreview');
+            const counter = document.getElementById('imageCounter');
+            preview.innerHTML = '';
+            
+            const files = Array.from(input.files);
+            const maxFiles = 5;
+            
+            if (files.length > maxFiles) {
+                alert(`لا يمكنك اختيار أكثر من ${maxFiles} صور`);
+                input.value = '';
+                counter.textContent = `0 من ${maxFiles} صور تم اختيارها`;
+                return;
+            }
+            
+            counter.textContent = `${files.length} من ${maxFiles} صور تم اختيارها`;
+            
+            files.forEach((file, index) => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'preview-item';
+                    
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        previewItem.appendChild(img);
+                        
+                        const removeBtn = document.createElement('div');
+                        removeBtn.className = 'remove-image';
+                        removeBtn.innerHTML = '×';
+                        removeBtn.onclick = function() {
+                            previewItem.remove();
+                            const dt = new DataTransfer();
+                            const remainingFiles = Array.from(input.files).filter((_, i) => i !== index);
+                            remainingFiles.forEach(f => dt.items.add(f));
+                            input.files = dt.files;
+                            counter.textContent = `${input.files.length} من ${maxFiles} صور تم اختيارها`;
+                            
+                            const event = new Event('change');
+                            input.dispatchEvent(event);
+                        };
+                        previewItem.appendChild(removeBtn);
+                    };
+                    preview.appendChild(previewItem);
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,1 +1,158 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قشاقيش - سوق الإعلانات</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* أنماط إضافية لضمان ظهور الصور بشكل صحيح */
+        .ad-image {
+            width: 100%;
+            height: 220px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
+        .ad-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .ad-card:hover .ad-image img {
+            transform: scale(1.05);
+        }
+
+        /* الصورة الافتراضية عندما لا توجد صورة */
+        .ad-image .default-image {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+        .ad-image .default-image span {
+            font-size: 4rem;
+            display: block;
+        }
+
+        .ad-image .default-image p {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="{{ url_for('index') }}" class="logo">قشاقيش</a>
+        
+        <form action="{{ url_for('search') }}" method="GET" style="flex: 1; margin: 0 20px;">
+            <input id="searchbtn" type="search" name="q" placeholder="ابحث عن منتج..." value="{{ search_query if search_query else '' }}">
+        </form>
+        
+        <nav class="navbar">
+            <span class="welcome-text">مرحباً {{ username }}!</span>
+            <a href="{{ url_for('index') }}">الرئيسية</a>
+            <a href="{{ url_for('my_ads') }}">إعلاناتي</a>
+            <a href="{{ url_for('add') }}">إضافة إعلان</a>
+            <a href="{{ url_for('logout') }}" class="logout-btn">تسجيل خروج</a>
+        </nav>
+    </header>
+
+    <!-- فلتر البحث المتقدم -->
+    <div class="filter-section">
+        <form action="{{ url_for('search') }}" method="GET" class="filter-form" id="filterForm">
+            <select name="category" id="categoryFilter">
+                <option value="">جميع الأقسام</option>
+                {% for cat in categories %}
+                <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+            
+            <select name="city" id="cityFilter">
+                <option value="">جميع المدن</option>
+                {% for city in cities %}
+                <option value="{{ city }}" {% if selected_city == city %}selected{% endif %}>{{ city }}</option>
+                {% endfor %}
+            </select>
+            
+            <button type="submit" class="filter-btn">تصفية</button>
+            {% if search_query or selected_category or selected_city %}
+            <a href="{{ url_for('index') }}" class="clear-filter">إلغاء التصفية</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="main-container">
+        <div class="ads-grid">
+            {% if ads %}
+                {% for ad in ads %}
+                <div class="ad-card">
+                    <!-- قسم الصورة - يظهر دائماً سواء وجدت صورة أم لا -->
+                    <div class="ad-image">
+                        {% if ad.images_list and ad.images_list|length > 0 %}
+                            {% if ad.images_list[0] %}
+                                <img src="{{ url_for('static', filename='uploads/' + ad.images_list[0]) }}" alt="{{ ad.title }}">
+                            {% else %}
+                                <div class="default-image">
+                                    <span>📷</span>
+                                    <p>لا توجد صورة</p>
+                                </div>
+                            {% endif %}
+                        {% elif ad.image %}
+                            <img src="{{ url_for('static', filename='uploads/' + ad.image) }}" alt="{{ ad.title }}">
+                        {% else %}
+                            <div class="default-image">
+                                <span>📷</span>
+                                <p>{{ ad.category }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h3>{{ ad.title }}</h3>
+                    <div class="ad-details">
+                        <p><strong>القسم:</strong> {{ ad.category }}</p>
+                        <p><strong>المدينة:</strong> {{ ad.city }}</p>
+                        <p><strong>السعر:</strong> {{ ad.price }} ليرة,دولار</p>
+                        <p><strong>الناشر:</strong> {{ ad.username }}</p>
+                    </div>
+                    <p class="ad-description">{{ ad.description[:100] }}{% if ad.description|length > 100 %}...{% endif %}</p>
+                    <div class="ad-actions">
+                        <a href="{{ url_for('view_ad', ad_id=ad.id) }}" class="view-btn">عرض التفاصيل</a>
+                        <a href="https://wa.me/{{ ad.phone }}?text=مرحباً، أرغب في الاستفسار عن إعلانك: {{ ad.title }}" 
+                           class="whatsapp-btn" target="_blank">واتساب</a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-ads">
+                    <p>لا توجد إعلانات حالياً</p>
+                    <a href="{{ url_for('add') }}" class="add-first-ad">أضف أول إعلان</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- زر واتساب ثابت -->
+    
+
+    <script>
+        // فلترة تلقائية بدون زر
+        document.getElementById('categoryFilter')?.addEventListener('change', function() {
+            document.getElementById('filterForm').submit();
+        });
+        document.getElementById('cityFilter')?.addEventListener('change', function() {
+            document.getElementById('filterForm').submit();
+        });
+    </script>
+</body>
+</html>

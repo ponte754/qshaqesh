@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء حساب جديد - قشاقيش</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="register-box">
+            <h2>إنشاء حساب جديد</h2>
+            
+            {% if errors %}
+                <div class="error-message">
+                    {% for error in errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <form method="POST" action="{{ url_for('register') }}">
+                <div class="input-group">
+                    <label for="username">اسم المستخدم *</label>
+                    <input type="text" id="username" name="username" required 
+                           placeholder="اختر اسم مستخدم">
+                </div>
+                
+                <div class="input-group">
+                    <label for="email">البريد الإلكتروني *</label>
+                    <input type="email" id="email" name="email" required 
+                           placeholder="example@email.com">
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">كلمة المرور *</label>
+                    <input type="password" id="password" name="password" required 
+                           placeholder="6 أحرف على الأقل">
+                </div>
+                
+                <div class="input-group">
+                    <label for="confirm_password">تأكيد كلمة المرور *</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required 
+                           placeholder="أعد كتابة كلمة المرور">
+                </div>
+                
+                <button type="submit" class="register-btn">إنشاء حساب</button>
+            </form>
+            
+            <div class="links">
+                <p>لديك حساب بالفعل؟ <a href="{{ url_for('login') }}">تسجيل الدخول</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
