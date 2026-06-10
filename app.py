@@ -6,9 +6,6 @@ import json
 from werkzeug.utils import secure_filename
 from functools import wraps
 import database as db
-import threading
-import shutil
-import time
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here_12345_please_change_this_in_production'
@@ -50,7 +47,7 @@ CITIES = [
 
 CATEGORIES = [
     'عقارات', 'سيارات', 'وظائف', 'الكترونيات', 'اثاث منزلي',
-    'لابتوبات','خدمات', 'حيوانات', 'ازياء', 'كتب', 'رياضة', 'اخرى'
+    'خدمات', 'حيوانات', 'ازياء', 'كتب', 'رياضة', 'اخرى'
 ]
 
 db.init_db()
@@ -456,6 +453,7 @@ def my_ads():
                          email=email, 
                          ads=user_ads,
                          blocked_by_count=blocked_by_count)
+                         
 
 @app.route('/delete_ad/<int:ad_id>')
 @login_required
@@ -626,223 +624,6 @@ def logout():
     flash('تم تسجيل الخروج بنجاح', 'info')
     return redirect(url_for('login'))
 
-# ===== نظام النسخ الاحتياطي التلقائي =====
-def create_backup():
-    """إنشاء نسخة احتياطية من قاعدة البيانات"""
-    try:
-        # التأكد من وجود مجلد النسخ الاحتياطي
-        backup_folder = 'backups'
-        if not os.path.exists(backup_folder):
-            os.makedirs(backup_folder)
-            print(f"📁 تم إنشاء مجلد النسخ الاحتياطي: {backup_folder}")
-        
-        # اسم ملف النسخة الاحتياطية مع التاريخ والوقت
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        backup_name = f"backup_{timestamp}.db"
-        backup_path = os.path.join(backup_folder, backup_name)
-        
-        # نسخ قاعدة البيانات
-        db_path = 'qashqish.db'  # نفس الاسم المستخدم في database.py
-        
-        if os.path.exists(db_path):
-            shutil.copy2(db_path, backup_path)
-            
-            # الحصول على حجم الملف
-            size = os.path.getsize(backup_path)
-            size_kb = size / 1024
-            
-            print(f"✅ [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] تم إنشاء نسخة احتياطية: {backup_name} ({size_kb:.2f} KB)")
-            
-            # حذف النسخ القديمة (احتفظ بآخر 20 نسخة فقط)
-            clean_old_backups(backup_folder, keep_count=20)
-            
-            return True
-        else:
-            print(f"⚠️ قاعدة البيانات غير موجودة للنسخ الاحتياطي")
-            return False
-    except Exception as e:
-        print(f"❌ خطأ في إنشاء النسخة الاحتياطية: {e}")
-        return False
-
-def clean_old_backups(backup_folder, keep_count=20):
-    """حذف النسخ الاحتياطية القديمة مع الاحتفاظ بآخر 20 نسخة"""
-    try:
-        # الحصول على قائمة جميع ملفات النسخ الاحتياطي
-        backup_files = [f for f in os.listdir(backup_folder) if f.startswith('backup_') and f.endswith('.db')]
-        
-        # ترتيبها حسب التاريخ (الأقدم أولاً)
-        backup_files.sort()
-        
-        # حذف الملفات القديمة إذا تجاوز العدد المطلوب
-        if len(backup_files) > keep_count:
-            files_to_delete = backup_files[:-keep_count]
-            for file in files_to_delete:
-                file_path = os.path.join(backup_folder, file)
-                os.remove(file_path)
-                print(f"🗑️ تم حذف نسخة قديمة: {file}")
-    except Exception as e:
-        print(f"⚠️ خطأ في تنظيف النسخ القديمة: {e}")
-
-def auto_backup_scheduler():
-    """جدولة النسخ الاحتياطي التلقائي كل 20 دقيقة"""
-    print("🔄 بدء تشغيل نظام النسخ الاحتياطي التلقائي (كل 20 دقيقة)...")
-    
-    # إنشاء نسخة احتياطية فورية عند بدء التشغيل
-    create_backup()
-    
-    while True:
-        # انتظر 20 دقيقة (1200 ثانية)
-        time.sleep(1200)  # 20 دقيقة = 1200 ثانية
-        create_backup()
-
-def restore_backup(backup_filename):
-    """استعادة نسخة احتياطية محددة"""
-    try:
-        backup_path = os.path.join('backups', backup_filename)
-        db_path = 'qashqish.db'
-        
-        if not os.path.exists(backup_path):
-            return False, "ملف النسخة الاحتياطية غير موجود"
-        
-        # عمل نسخة احتياطية من قاعدة البيانات الحالية قبل الاستعادة
-        if os.path.exists(db_path):
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            pre_restore_backup = f"backups/pre_restore_{timestamp}.db"
-            shutil.copy2(db_path, pre_restore_backup)
-            print(f"📦 تم إنشاء نسخة قبل الاستعادة: {pre_restore_backup}")
-        
-        # استعادة النسخة الاحتياطية
-        shutil.copy2(backup_path, db_path)
-        
-        size = os.path.getsize(db_path)
-        size_kb = size / 1024
-        
-        return True, f"تم استعادة النسخة الاحتياطية بنجاح ({size_kb:.2f} KB)"
-    except Exception as e:
-        return False, f"خطأ في الاستعادة: {e}"
-
-def list_backups():
-    """الحصول على قائمة جميع النسخ الاحتياطية"""
-    try:
-        backup_folder = 'backups'
-        if not os.path.exists(backup_folder):
-            return []
-        
-        backups = []
-        for file in os.listdir(backup_folder):
-            if file.startswith('backup_') and file.endswith('.db'):
-                file_path = os.path.join(backup_folder, file)
-                stat = os.stat(file_path)
-                backups.append({
-                    'filename': file,
-                    'size': stat.st_size,
-                    'size_kb': stat.st_size / 1024,
-                    'created': datetime.fromtimestamp(stat.st_ctime).strftime('%Y-%m-%d %H:%M:%S')
-                })
-        
-        # ترتيب من الأحدث إلى الأقدم
-        backups.sort(key=lambda x: x['created'], reverse=True)
-        return backups
-    except Exception as e:
-        print(f"خطأ في قراءة قائمة النسخ: {e}")
-        return []
-
-# بدء تشغيل النسخ الاحتياطي في خلفية منفصلة
-backup_thread = threading.Thread(target=auto_backup_scheduler, daemon=True)
-backup_thread.start()
-
-# ===== مسارات إدارة النسخ الاحتياطي =====
-@app.route('/admin/backups')
-@login_required
-def manage_backups():
-    """صفحة إدارة النسخ الاحتياطي"""
-    username = get_current_username()
-    
-    # يمكنك تحديد من يمكنه الوصول إلى صفحة النسخ الاحتياطي
-    # مثال: فقط المستخدم 'admin' أو أي شرط آخر
-    if username != 'admin':  # غير هذا حسب احتياجك
-        flash('غير مصرح لك بالوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('index'))
-    
-    backups = list_backups()
-    return render_template('admin/backups.html', backups=backups, username=username)
-
-@app.route('/admin/backup/create', methods=['POST'])
-@login_required
-def create_manual_backup():
-    """إنشاء نسخة احتياطية يدوية"""
-    username = get_current_username()
-    
-    if username != 'admin':
-        return jsonify({'error': 'Unauthorized'}), 403
-    
-    success = create_backup()
-    if success:
-        flash('تم إنشاء النسخة الاحتياطية بنجاح', 'success')
-    else:
-        flash('فشل في إنشاء النسخة الاحتياطية', 'error')
-    
-    return redirect(url_for('manage_backups'))
-
-@app.route('/admin/backup/restore/<filename>')
-@login_required
-def restore_backup_route(filename):
-    """استعادة نسخة احتياطية"""
-    username = get_current_username()
-    
-    if username != 'admin':
-        flash('غير مصرح لك بهذا الإجراء', 'error')
-        return redirect(url_for('index'))
-    
-    success, message = restore_backup(filename)
-    if success:
-        flash(message, 'success')
-        # إعادة تهيئة الاتصال بقاعدة البيانات
-        db.init_db()
-    else:
-        flash(message, 'error')
-    
-    return redirect(url_for('manage_backups'))
-
-@app.route('/admin/backup/download/<filename>')
-@login_required
-def download_backup(filename):
-    """تحميل نسخة احتياطية"""
-    username = get_current_username()
-    
-    if username != 'admin':
-        flash('غير مصرح لك بهذا الإجراء', 'error')
-        return redirect(url_for('index'))
-    
-    backup_path = os.path.join('backups', filename)
-    if os.path.exists(backup_path):
-        return send_file(backup_path, as_attachment=True)
-    else:
-        flash('الملف غير موجود', 'error')
-        return redirect(url_for('manage_backups'))
-
-@app.route('/admin/backup/delete/<filename>')
-@login_required
-def delete_backup(filename):
-    """حذف نسخة احتياطية"""
-    username = get_current_username()
-    
-    if username != 'admin':
-        flash('غير مصرح لك بهذا الإجراء', 'error')
-        return redirect(url_for('index'))
-    
-    try:
-        backup_path = os.path.join('backups', filename)
-        if os.path.exists(backup_path):
-            os.remove(backup_path)
-            flash('تم حذف النسخة الاحتياطية بنجاح', 'success')
-        else:
-            flash('الملف غير موجود', 'error')
-    except Exception as e:
-        flash(f'خطأ في حذف الملف: {e}', 'error')
-    
-    return redirect(url_for('manage_backups'))
-
 # ===== API endpoints =====
 @app.route('/api/ads')
 def api_get_ads():
@@ -855,6 +636,10 @@ def api_get_ad(ad_id):
     if ad:
         return jsonify(dict(ad))
     return jsonify({'error': 'Ad not found'}), 404
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 # ===== معالجة الأخطاء =====
 @app.errorhandler(404)
@@ -879,11 +664,10 @@ if __name__ == '__main__':
     ║      🚀 Server is running!                               ║
     ║      📍 http://127.0.0.1:5000                            ║
     ║                                                          ║
-    ║      ⚡ Debug mode: OFF                                  ║
+    ║      ⚡ Debug mode: ON                                   ║
     ║      📁 Upload folder: {UPLOAD_FOLDER}                  ║
     ║      💬 Messaging system: Enabled                        ║
-    ║      💾 Auto backup: Every 20 minutes                    ║
     ║                                                          ║
     ╚══════════════════════════════════════════════════════════╝
     """)
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(debug=True)
