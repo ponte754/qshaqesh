@@ -100,12 +100,11 @@
                     <span class="info-value">{{ ad.price }}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">عمولة الموقع (15%):</span>
-                    <span class="info-value">{{ (ad.price_value * commission_rate)|round(2) if ad.price_value > 0 else 0 }}</span>
+                   
                 </div>
                 <div class="info-row">
                     <span class="info-label">السعر النهائي:</span>
-                    <span class="info-value price">{{ (ad.price_value * (1 + commission_rate))|round(2) if ad.price_value > 0 else ad.price }}</span>
+                    <span class="info-value price">{{ ad.price_value|round(2) if ad.price_value > 0 else ad.price }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">الناشر:</span>
