@@ -139,7 +139,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="price">السعر (ليرة او دولار)</label>
-                        <input type="text" id="price" name="price" step="0.01"
+                        <input type="number" id="price" name="price" step="0.01"
                                placeholder="مثال: 1500"
                                value="{{ form_data.get('price', '') if form_data else '' }}">
                     </div>
@@ -170,7 +170,7 @@
                 </div>
                 
                 <div class="info-box">
-                    <p>💡 ملاحظة: سيتم إضافة عمولة 15% عند عرض السعر</p>
+                    
                 </div>
                 
                 <div class="form-actions">
