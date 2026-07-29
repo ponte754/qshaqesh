@@ -33,6 +33,31 @@
     --radius-2xl: 3rem;
     --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --gradient-gold: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+    
+    /* --- متغيرات جديدة للوضع الليلي --- */
+    --bg-body: #f5f7fa;
+    --bg-card: #ffffff;
+    --text-main: #0f172a;
+    --border-color: rgba(255, 255, 255, 0.5);
+    --shadow-card: var(--shadow-xl);
+}
+
+/* ========== الوضع الليلي (مضافة) ========== */
+body.dark {
+    --bg-body: #1a1a2e;
+    --bg-card: #2a2a40;
+    --text-main: #e0e0e0;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --shadow-card: 0 8px 25px rgba(0, 0, 0, 0.4);
+    --gray-light: #2d2d44;
+    --gray: #3d3d5c;
+    --gray-dark: #a0a0b8;
+    --text-gray: #c0c0d8;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
 }
 
 /* ========== إعادة تعيين الأنماط ========== */
@@ -44,13 +69,15 @@
 
 body {
     font-family: 'Segoe UI', 'Tajawal', 'Cairo', system-ui, -apple-system, sans-serif;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%);
+    background: var(--bg-body);
     min-height: 100vh;
     direction: rtl;
     scroll-behavior: smooth;
+    color: var(--text-main);
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* ========== HEADER والتنقل (مُحسّن) ========== */
+/* ========== HEADER والتنقل ========== */
 header {
     background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-light) 100%);
     width: 100%;
@@ -136,6 +163,28 @@ header {
     opacity: 0;
 }
 
+/* زر تبديل الوضع الليلي (مضافة) */
+.theme-toggle {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: var(--gold);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    background: var(--gold);
+    color: var(--primary-dark);
+    transform: rotate(30deg) scale(1.1);
+}
+
 .welcome-text {
     color: var(--gold);
     font-weight: 600;
@@ -167,7 +216,7 @@ header {
 
 .page-title {
     text-align: center;
-    color: var(--text-dark);
+    color: var(--text-main);
     font-size: 2.2rem;
     margin-bottom: 2.5rem;
     font-weight: 700;
@@ -189,7 +238,7 @@ header {
     border-radius: var(--radius-2xl);
 }
 
-/* ========== شبكة الإعلانات (مُحسّنة) ========== */
+/* ========== شبكة الإعلانات (محسّنة مع تأثيرات جديدة) ========== */
 .ads-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -197,13 +246,26 @@ header {
 }
 
 .ad-card {
-    background: white;
+    background: var(--bg-card);
     border-radius: var(--radius-lg);
     overflow: hidden;
-    box-shadow: var(--shadow-xl);
+    box-shadow: var(--shadow-card);
     transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--border-color);
     position: relative;
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .ad-card::before {
@@ -251,6 +313,28 @@ header {
     transform: scale(1.08);
 }
 
+/* الصورة الافتراضية (مضافة) */
+.default-image {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-main);
+    opacity: 0.6;
+    text-align: center;
+    padding: 20px;
+}
+
+.default-image span {
+    font-size: 4rem;
+    display: block;
+}
+
+.default-image p {
+    margin-top: 10px;
+    font-size: 0.9rem;
+}
+
 .image-count {
     position: absolute;
     bottom: 12px;
@@ -265,12 +349,11 @@ header {
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.ad-badge {
+/* شارة "جديد" أو "مميز" (مضافة) */
+.ad-badge, .badge {
     position: absolute;
     top: 12px;
     right: 12px;
-    background: var(--gradient-gold);
-    color: var(--primary-dark);
     padding: 0.3rem 0.8rem;
     border-radius: var(--radius-2xl);
     font-size: 0.7rem;
@@ -279,10 +362,20 @@ header {
     box-shadow: var(--shadow-md);
 }
 
+.badge {
+    background: #ff6b81;
+    color: #fff;
+}
+
+.badge.featured {
+    background: var(--gradient-gold);
+    color: var(--primary-dark);
+}
+
 .ad-card h3 {
     font-size: 1.35rem;
     margin: 1rem 1.2rem 0.5rem;
-    color: var(--text-dark);
+    color: var(--text-main);
     font-weight: 700;
 }
 
@@ -300,7 +393,13 @@ header {
 }
 
 .ad-details p strong {
-    color: var(--primary-dark);
+    color: var(--text-main);
+}
+
+.ad-price {
+    font-weight: 700;
+    color: var(--gold-dark);
+    font-size: 1.1rem;
 }
 
 .ad-description {
@@ -314,14 +413,22 @@ header {
     overflow: hidden;
 }
 
-.ad-actions {
-    padding: 1rem 1.2rem;
+/* الميتا (تاريخ + مشاهدات) (مضافة) */
+.ad-meta {
     display: flex;
-    gap: 0.7rem;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 0.5rem 1.2rem 0.8rem;
+    font-size: 0.8rem;
+    color: var(--gray-dark);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0.5rem;
 }
 
-/* ========== الأزرار (مُحسّنة) ========== */
+.ad-meta span i {
+    margin-left: 4px;
+}
+
+/* ========== الأزرار (محسّنة) ========== */
 .btn {
     padding: 0.6rem 1.2rem;
     border-radius: var(--radius-2xl);
@@ -402,6 +509,52 @@ header {
     box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
 }
 
+/* زر المشاركة (مضافة) */
+.share-btn {
+    background: var(--gray);
+    color: var(--text-main);
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: var(--radius-2xl);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.share-btn:hover {
+    background: var(--gold);
+    color: var(--primary-dark);
+    transform: scale(1.05);
+}
+
+/* الأزرار في الـ actions (مضافة) */
+.ad-actions {
+    padding: 1rem 1.2rem;
+    display: flex;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+}
+
+.ad-actions a, .ad-actions button {
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--radius-2xl);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
 .submit-btn {
     background: var(--gradient-primary);
     color: white;
@@ -456,7 +609,7 @@ header {
     box-shadow: var(--shadow-md);
 }
 
-/* ========== نماذج تسجيل الدخول والتسجيل (مُحسّنة) ========== */
+/* ========== نماذج تسجيل الدخول والتسجيل ========== */
 .container {
     display: flex;
     justify-content: center;
@@ -467,7 +620,7 @@ header {
 }
 
 .login-box, .register-box {
-    background: rgba(255, 255, 255, 0.98);
+    background: var(--bg-card);
     backdrop-filter: blur(10px);
     padding: 2.5rem 2.5rem 3rem;
     border-radius: var(--radius-xl);
@@ -475,7 +628,7 @@ header {
     width: 100%;
     max-width: 440px;
     transition: all 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--border-color);
     position: relative;
     overflow: hidden;
 }
@@ -513,7 +666,7 @@ header {
     display: block;
     margin-bottom: 0.6rem;
     font-weight: 600;
-    color: var(--primary-dark);
+    color: var(--text-main);
     font-size: 0.95rem;
 }
 
@@ -524,7 +677,8 @@ header {
     border-radius: var(--radius-lg);
     font-size: 1rem;
     transition: all 0.3s ease;
-    background: #fefefe;
+    background: var(--bg-card);
+    color: var(--text-main);
 }
 
 .input-group input:focus {
@@ -592,7 +746,7 @@ header {
     align-items: center;
     justify-content: center;
     gap: 12px;
-    background: white;
+    background: var(--bg-card);
     border: 2px solid var(--gray);
     border-radius: var(--radius-xl);
     padding: 0.9rem;
@@ -600,7 +754,7 @@ header {
     font-weight: 600;
     transition: all 0.3s ease;
     margin-top: 1rem;
-    color: var(--primary-dark);
+    color: var(--text-main);
 }
 
 .google-btn:hover {
@@ -634,9 +788,9 @@ header {
 }
 
 .divider span {
-    background: white;
+    background: var(--bg-card);
     padding: 0 12px;
-    color: #64748b;
+    color: var(--gray-dark);
     font-weight: 500;
 }
 
@@ -681,7 +835,7 @@ header {
     border-right: 4px solid var(--orange);
 }
 
-/* ========== نموذج إضافة/تعديل الإعلان (مُحسّن) ========== */
+/* ========== نموذج إضافة/تعديل الإعلان ========== */
 .form-container {
     max-width: 880px;
     margin: 2rem auto;
@@ -689,18 +843,18 @@ header {
 }
 
 .add-ad-box, .edit-ad-box {
-    background: white;
+    background: var(--bg-card);
     border-radius: var(--radius-xl);
     padding: 2.5rem 2.5rem 3rem;
     box-shadow: var(--shadow-xl);
     animation: fadeIn 0.5s ease-out;
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--border-color);
 }
 
 .add-ad-box h2, .edit-ad-box h2 {
     text-align: center;
     margin-bottom: 2rem;
-    color: var(--text-dark);
+    color: var(--text-main);
     font-size: 2rem;
     font-weight: 700;
     background: var(--gradient-primary);
@@ -717,7 +871,7 @@ header {
     font-weight: 700;
     display: block;
     margin-bottom: 0.6rem;
-    color: var(--primary-dark);
+    color: var(--text-main);
     font-size: 0.95rem;
 }
 
@@ -730,7 +884,8 @@ header {
     border: 2px solid var(--gray);
     transition: all 0.3s ease;
     font-size: 1rem;
-    background: #fefefe;
+    background: var(--bg-card);
+    color: var(--text-main);
     font-family: inherit;
 }
 
@@ -740,7 +895,7 @@ header {
     border-color: var(--gold);
     outline: none;
     box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.15);
-    background: white;
+    background: var(--bg-card);
     transform: translateY(-1px);
 }
 
@@ -757,12 +912,12 @@ header {
 
 .form-help {
     font-size: 0.75rem;
-    color: #94a3b8;
+    color: var(--gray-dark);
     margin-top: 0.3rem;
     display: block;
 }
 
-/* ========== رفع الصور ومعاينتها (مُحسّنة) ========== */
+/* ========== رفع الصور ومعاينتها ========== */
 .images-upload {
     background: var(--gray-light);
     border-radius: var(--radius-lg);
@@ -782,7 +937,7 @@ header {
     font-weight: 700;
     display: block;
     margin-bottom: 0.8rem;
-    color: var(--primary-dark);
+    color: var(--text-main);
     font-size: 1rem;
 }
 
@@ -791,9 +946,10 @@ header {
     padding: 0.8rem;
     border: 1px solid var(--gray);
     border-radius: var(--radius-md);
-    background: white;
+    background: var(--bg-card);
     cursor: pointer;
     transition: border-color 0.3s ease;
+    color: var(--text-main);
 }
 
 #product_images:hover {
@@ -802,7 +958,7 @@ header {
 
 .image-counter {
     font-size: 0.8rem;
-    color: #64748b;
+    color: var(--gray-dark);
     margin-top: 0.5rem;
     text-align: center;
 }
@@ -821,7 +977,7 @@ header {
     border-radius: var(--radius-md);
     overflow: hidden;
     border: 2px solid var(--gray);
-    background: white;
+    background: var(--bg-card);
     transition: all 0.3s ease;
 }
 
@@ -863,19 +1019,19 @@ header {
     box-shadow: var(--shadow-md);
 }
 
-/* ========== تفاصيل الإعلان (مُحسّنة) ========== */
+/* ========== تفاصيل الإعلان ========== */
 .ad-detail-box {
-    background: white;
+    background: var(--bg-card);
     border-radius: var(--radius-xl);
     padding: 2.5rem;
     max-width: 1000px;
     margin: 2rem auto;
     box-shadow: var(--shadow-xl);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--border-color);
 }
 
 .ad-detail-box h1 {
-    color: var(--text-dark);
+    color: var(--text-main);
     font-size: 2rem;
     margin-bottom: 1.5rem;
     text-align: center;
@@ -907,7 +1063,7 @@ header {
 .info-label {
     font-weight: 800;
     width: 140px;
-    color: var(--text-dark);
+    color: var(--text-main);
 }
 
 .info-value {
@@ -932,7 +1088,7 @@ header {
 
 .ad-description-full h3 {
     margin-bottom: 0.8rem;
-    color: var(--text-dark);
+    color: var(--text-main);
     font-size: 1.1rem;
 }
 
@@ -972,15 +1128,15 @@ header {
     box-shadow: var(--shadow-lg);
 }
 
-/* ========== فلتر الإعلانات (مُحسّن) ========== */
+/* ========== فلتر الإعلانات ========== */
 .filter-section {
-    background: white;
+    background: var(--bg-card);
     padding: 1.5rem 2.5rem;
     border-radius: var(--radius-xl);
     margin: 0 auto 2.5rem;
     width: fit-content;
     box-shadow: var(--shadow-md);
-    border: 1px solid #eef2ff;
+    border: 1px solid var(--border-color);
     backdrop-filter: blur(5px);
 }
 
@@ -996,7 +1152,8 @@ header {
     padding: 0.8rem 1.8rem;
     border-radius: var(--radius-2xl);
     border: 2px solid var(--gray);
-    background: var(--gray-light);
+    background: var(--bg-card);
+    color: var(--text-main);
     font-weight: 500;
     cursor: pointer;
     font-size: 0.95rem;
@@ -1035,7 +1192,7 @@ header {
 
 .clear-filter {
     background: var(--gray);
-    color: var(--primary-dark);
+    color: var(--text-main);
 }
 
 .clear-filter:hover {
@@ -1071,9 +1228,10 @@ header {
 .no-ads {
     text-align: center;
     padding: 4rem;
-    background: white;
+    background: var(--bg-card);
     border-radius: var(--radius-lg);
     grid-column: 1 / -1;
+    border: 1px solid var(--border-color);
 }
 
 .no-ads p {
@@ -1101,7 +1259,7 @@ header {
     color: var(--primary-dark);
 }
 
-/* ========== واتساب العائم (مُحسّن) ========== */
+/* ========== واتساب العائم ========== */
 .whatsapp-float {
     position: fixed;
     bottom: 30px;
@@ -1119,12 +1277,16 @@ header {
     cursor: pointer;
     border: none;
     animation: pulse 2s infinite;
+    color: var(--primary-dark);
+    font-size: 2rem;
+    text-decoration: none;
 }
 
 .whatsapp-float:hover {
     transform: scale(1.15) rotate(-10deg);
     background: var(--gold-dark);
     box-shadow: 0 12px 35px rgba(250, 204, 21, 0.6);
+    color: white;
 }
 
 @keyframes pulse {
@@ -1205,7 +1367,7 @@ header {
     animation: scaleIn 0.4s ease-out;
 }
 
-/* ========== تصميم متجاوب للجوال (مُحسّن) ========== */
+/* ========== تصميم متجاوب للجوال ========== */
 @media (max-width: 768px) {
     header {
         flex-direction: column;
@@ -1283,6 +1445,7 @@ header {
         height: 55px;
         bottom: 20px;
         left: 20px;
+        font-size: 1.7rem;
     }
     
     .add-ad-box, .edit-ad-box {
@@ -1315,6 +1478,12 @@ header {
     
     .page-title::after {
         width: 40px;
+    }
+
+    .theme-toggle {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
     }
 }
 
@@ -1354,6 +1523,7 @@ header {
         height: 50px;
         bottom: 15px;
         left: 15px;
+        font-size: 1.5rem;
     }
     
     .ad-detail-box h1 {
@@ -1389,10 +1559,10 @@ header {
 #searchbtn {
     border: none;
     border-radius: 15px;
-    color: black;
+    color: var(--text-main);
     width: 40%;
     padding: 10px;
-    background: white;
+    background: var(--bg-card);
     transition: all 0.3s ease;
 }
 
