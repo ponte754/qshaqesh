@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,67 +8,477 @@
     <meta name="google-adsense-account" content="ca-pub-1382614013492962">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1382614013492962"
      crossorigin="anonymous"></script>
+    <!-- Font Awesome للأيقونات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* أنماط إضافية لضمان ظهور الصور بشكل صحيح */
+        /* ========== المتغيرات العامة ========== */
+        :root {
+            --bg: #f4f7fc;
+            --card-bg: #ffffff;
+            --text: #1a1a2e;
+            --primary: #4a6cf7;
+            --primary-dark: #3651d4;
+            --secondary: #6c757d;
+            --shadow: 0 8px 25px rgba(0,0,0,0.08);
+            --radius: 16px;
+            --transition: 0.3s ease;
+        }
+        body {
+            font-family: 'Segoe UI', 'Tahoma', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            transition: background 0.3s, color 0.3s;
+            padding-top: 80px; /* لشريط ثابت */
+        }
+        /* الوضع الليلي */
+        body.dark {
+            --bg: #1a1a2e;
+            --card-bg: #2a2a40;
+            --text: #e0e0e0;
+            --shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+
+        /* ========== الهيدر ========== */
+        header {
+            background: var(--card-bg);
+            box-shadow: 0 2px 15px rgba(0,0,0,0.06);
+            padding: 12px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            transition: background 0.3s;
+            flex-wrap: wrap;
+        }
+        .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+            letter-spacing: -1px;
+        }
+        .logo i {
+            margin-left: 8px;
+        }
+
+        /* شريط البحث */
+        header form {
+            flex: 1;
+            margin: 0 20px;
+            min-width: 200px;
+        }
+        header form input {
+            width: 100%;
+            padding: 10px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 50px;
+            font-size: 1rem;
+            background: var(--bg);
+            color: var(--text);
+            transition: all 0.3s;
+            outline: none;
+        }
+        header form input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(74,108,247,0.2);
+        }
+
+        /* قائمة التنقل */
+        .navbar {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .navbar a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 30px;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .navbar a:hover {
+            background: var(--primary);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        .navbar a i {
+            margin-left: 6px;
+        }
+        .welcome-text {
+            font-weight: 600;
+            color: var(--primary);
+            background: rgba(74,108,247,0.1);
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+        }
+        .logout-btn {
+            background: #ff4757;
+            color: #fff !important;
+            padding: 6px 16px;
+            border-radius: 30px;
+        }
+        .logout-btn:hover {
+            background: #ff1e3a !important;
+        }
+
+        /* زر الوضع الليلي */
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text);
+            transition: 0.3s;
+            padding: 0 6px;
+        }
+        .theme-toggle:hover {
+            transform: rotate(30deg);
+        }
+
+        /* ========== فلتر البحث ========== */
+        .filter-section {
+            background: var(--card-bg);
+            padding: 15px 25px;
+            border-radius: var(--radius);
+            max-width: 1100px;
+            margin: 20px auto 0;
+            box-shadow: var(--shadow);
+            transition: 0.3s;
+        }
+        .filter-form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-form select, .filter-form button {
+            padding: 10px 18px;
+            border-radius: 50px;
+            border: 2px solid #e9ecef;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.95rem;
+            transition: 0.3s;
+            outline: none;
+        }
+        .filter-form select:focus {
+            border-color: var(--primary);
+        }
+        .filter-btn {
+            background: var(--primary);
+            color: #fff !important;
+            border: none !important;
+            padding: 10px 28px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .filter-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.02);
+        }
+        .clear-filter {
+            background: #ff6b81;
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .clear-filter:hover {
+            background: #ff4757;
+        }
+
+        /* ========== شبكة الإعلانات ========== */
+        .main-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .ads-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        /* بطاقة الإعلان */
+        .ad-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+        }
+        .ad-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* قسم الصورة */
         .ad-image {
             width: 100%;
             height: 220px;
-            overflow: hidden;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             position: relative;
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-
         .ad-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.3s;
+            transition: transform 0.4s;
         }
-
         .ad-card:hover .ad-image img {
             transform: scale(1.05);
         }
-
-        /* الصورة الافتراضية عندما لا توجد صورة */
-        .ad-image .default-image {
+        .default-image {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: #fff;
             text-align: center;
+            padding: 20px;
         }
-
-        .ad-image .default-image span {
+        .default-image span {
             font-size: 4rem;
-            display: block;
+            opacity: 0.8;
+        }
+        .default-image p {
+            margin: 10px 0 0;
+            font-weight: 300;
+            opacity: 0.9;
         }
 
-        .ad-image .default-image p {
-            margin-top: 10px;
+        /* شارة الحالة */
+        .badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: #ff6b81;
+            color: #fff;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(255,107,129,0.3);
+        }
+        .badge.featured {
+            background: #f9ca24;
+            color: #1a1a2e;
+        }
+
+        /* معلومات الإعلان */
+        .ad-card h3 {
+            margin: 16px 20px 8px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            line-height: 1.4;
+            flex: 1;
+        }
+        .ad-details {
+            padding: 0 20px;
             font-size: 0.9rem;
-            opacity: 0.9;
+            color: var(--secondary);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+        }
+        .ad-details p {
+            margin: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .ad-details i {
+            width: 18px;
+            color: var(--primary);
+        }
+        .ad-price {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+        .ad-description {
+            padding: 0 20px;
+            margin: 12px 0 8px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text);
+            opacity: 0.8;
+            flex: 1;
+        }
+
+        /* تاريخ النشر والمشاهدات */
+        .ad-meta {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px 12px;
+            font-size: 0.8rem;
+            color: var(--secondary);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            margin-bottom: 12px;
+        }
+        .ad-meta span i {
+            margin-left: 4px;
+        }
+
+        /* أزرار الإجراءات */
+        .ad-actions {
+            padding: 0 20px 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .ad-actions a {
+            flex: 1;
+            text-align: center;
+            padding: 10px 0;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .view-btn {
+            background: var(--primary);
+            color: #fff;
+        }
+        .view-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.02);
+        }
+        .whatsapp-btn {
+            background: #25d366;
+            color: #fff;
+        }
+        .whatsapp-btn:hover {
+            background: #1da851;
+            transform: scale(1.02);
+        }
+        .share-btn {
+            background: #6c757d;
+            color: #fff;
+            flex: 0.5 !important;
+            padding: 10px !important;
+        }
+        .share-btn:hover {
+            background: #5a6268;
+        }
+
+        /* ========== زر واتساب عائم ========== */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #25d366;
+            color: #fff;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+            transition: 0.3s;
+            z-index: 999;
+            text-decoration: none;
+        }
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(37,211,102,0.6);
+        }
+
+        /* ========== لا توجد إعلانات ========== */
+        .no-ads {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        .no-ads p {
+            font-size: 1.5rem;
+            color: var(--secondary);
+        }
+        .add-first-ad {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 40px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* ========== التجاوب مع الشاشات ========== */
+        @media (max-width: 768px) {
+            body { padding-top: 140px; }
+            header { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px; }
+            header form { margin: 0; }
+            .navbar { justify-content: center; gap: 10px; }
+            .welcome-text { font-size: 0.8rem; }
+            .filter-form { flex-direction: column; align-items: stretch; }
+            .filter-form select, .filter-form button { width: 100%; }
+            .ads-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <header>
-        <a href="{{ url_for('index') }}" class="logo">قشاقيش</a>
+        <a href="{{ url_for('index') }}" class="logo">
+            <i class="fas fa-tag"></i> قشاقيش
+        </a>
         
-        <form action="{{ url_for('search') }}" method="GET" style="flex: 1; margin: 0 20px;">
+        <form action="{{ url_for('search') }}" method="GET">
             <input id="searchbtn" type="search" name="q" placeholder="ابحث عن منتج..." value="{{ search_query if search_query else '' }}">
         </form>
         
         <nav class="navbar">
-            <span class="welcome-text">مرحباً {{ username }}!</span>
-            <a href="{{ url_for('index') }}">الرئيسية</a>
-            <a href="{{ url_for('my_ads') }}">إعلاناتي</a>
-             <a href="{{ url_for('about') }}">من نحن</a>
-            <a href="{{ url_for('add') }}">إضافة إعلان</a>
-            <a href="{{ url_for('logout') }}" class="logout-btn">تسجيل خروج</a>
+            <span class="welcome-text"><i class="fas fa-user-circle"></i> مرحباً {{ username }}!</span>
+            <a href="{{ url_for('index') }}"><i class="fas fa-home"></i> الرئيسية</a>
+            <a href="{{ url_for('my_ads') }}"><i class="fas fa-list-ul"></i> إعلاناتي</a>
+            <a href="{{ url_for('about') }}"><i class="fas fa-info-circle"></i> من نحن</a>
+            <a href="{{ url_for('add') }}"><i class="fas fa-plus-circle"></i> إضافة إعلان</a>
+            <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</a>
+            <button class="theme-toggle" id="themeToggle" aria-label="تبديل الوضع الليلي">
+                <i class="fas fa-moon"></i>
+            </button>
         </nav>
     </header>
 
@@ -89,9 +499,9 @@
                 {% endfor %}
             </select>
             
-            <button type="submit" class="filter-btn">تصفية</button>
+            <button type="submit" class="filter-btn"><i class="fas fa-sliders-h"></i> تصفية</button>
             {% if search_query or selected_category or selected_city %}
-            <a href="{{ url_for('index') }}" class="clear-filter">إلغاء التصفية</a>
+            <a href="{{ url_for('index') }}" class="clear-filter"><i class="fas fa-times"></i> إلغاء التصفية</a>
             {% endif %}
         </form>
     </div>
@@ -100,8 +510,8 @@
         <div class="ads-grid">
             {% if ads %}
                 {% for ad in ads %}
-                <div class="ad-card">
-                    <!-- قسم الصورة - يظهر دائماً سواء وجدت صورة أم لا -->
+                <div class="ad-card" style="animation-delay: {{ loop.index0 * 0.05 }}s;">
+                    <!-- قسم الصورة -->
                     <div class="ad-image">
                         {% if ad.images_list and ad.images_list|length > 0 %}
                             {% if ad.images_list[0] %}
@@ -120,45 +530,114 @@
                                 <p>{{ ad.category }}</p>
                             </div>
                         {% endif %}
+                        
+                        <!-- شارة "جديد" أو "مميز" (يمكن إضافتها من الخلفية) -->
+                        {% if ad.is_new %}
+                            <span class="badge"><i class="fas fa-star"></i> جديد</span>
+                        {% elif ad.is_featured %}
+                            <span class="badge featured"><i class="fas fa-crown"></i> مميز</span>
+                        {% endif %}
                     </div>
                     
                     <h3>{{ ad.title }}</h3>
+                    
                     <div class="ad-details">
-                        <p><strong>القسم:</strong> {{ ad.category }}</p>
-                        <p><strong>المدينة:</strong> {{ ad.city }}</p>
-                        <p><strong>السعر:</strong> {{ ad.price }} ليرة,دولار</p>
-                        <p><strong>الناشر:</strong> {{ ad.username }}</p>
+                        <p><i class="fas fa-tag"></i> {{ ad.category }}</p>
+                        <p><i class="fas fa-map-marker-alt"></i> {{ ad.city }}</p>
+                        <p class="ad-price"><i class="fas fa-dollar-sign"></i> {{ ad.price }} ل.س</p>
                     </div>
+                    
                     <p class="ad-description">{{ ad.description[:100] }}{% if ad.description|length > 100 %}...{% endif %}</p>
+                    
+                    <!-- تاريخ النشر وعدد المشاهدات -->
+                    <div class="ad-meta">
+                        <span><i class="far fa-clock"></i> {{ ad.created_at.strftime('%Y-%m-%d') if ad.created_at else 'منذ أيام' }}</span>
+                        <span><i class="far fa-eye"></i> {{ ad.views|default(0) }} مشاهدة</span>
+                    </div>
+                    
                     <div class="ad-actions">
-                        <a href="{{ url_for('view_ad', ad_id=ad.id) }}" class="view-btn">عرض التفاصيل</a>
+                        <a href="{{ url_for('view_ad', ad_id=ad.id) }}" class="view-btn"><i class="fas fa-eye"></i> عرض</a>
                         <a href="https://wa.me/{{ ad.phone }}?text=مرحباً، أرغب في الاستفسار عن إعلانك: {{ ad.title }}" 
-                           class="whatsapp-btn" target="_blank">واتساب</a>
+                           class="whatsapp-btn" target="_blank"><i class="fab fa-whatsapp"></i> واتساب</a>
+                        <!-- زر مشاركة -->
+                        <button class="share-btn" onclick="shareAd('{{ ad.title }}', '{{ url_for('view_ad', ad_id=ad.id, _external=True) }}')">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
                 <div class="no-ads">
+                    <i class="fas fa-inbox" style="font-size: 4rem; color: var(--secondary);"></i>
                     <p>لا توجد إعلانات حالياً</p>
-                    <a href="{{ url_for('add') }}" class="add-first-ad">أضف أول إعلان</a>
+                    <a href="{{ url_for('add') }}" class="add-first-ad"><i class="fas fa-plus"></i> أضف أول إعلان</a>
                 </div>
             {% endif %}
         </div>
     </div>
 
-    <!-- زر واتساب ثابت -->
-    
+    <!-- زر واتساب عائم -->
+    <a href="https://wa.me/1234567890?text=أهلاً، لدي استفسار عن إعلاناتكم" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
 
     <script>
-        // فلترة تلقائية بدون زر
+        // ========== الوضع الليلي ==========
+        const toggle = document.getElementById('themeToggle');
+        const body = document.body;
+        const icon = toggle.querySelector('i');
+
+        // التحقق من التفضيل المخزن
+        if (localStorage.getItem('theme') === 'dark') {
+            body.classList.add('dark');
+            icon.classList.replace('fa-moon', 'fa-sun');
+        }
+
+        toggle.addEventListener('click', () => {
+            body.classList.toggle('dark');
+            if (body.classList.contains('dark')) {
+                localStorage.setItem('theme', 'dark');
+                icon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                localStorage.setItem('theme', 'light');
+                icon.classList.replace('fa-sun', 'fa-moon');
+            }
+        });
+
+        // ========== فلترة تلقائية ==========
         document.getElementById('categoryFilter')?.addEventListener('change', function() {
             document.getElementById('filterForm').submit();
         });
         document.getElementById('cityFilter')?.addEventListener('change', function() {
             document.getElementById('filterForm').submit();
         });
+
+        // ========== مشاركة الإعلان ==========
+        function shareAd(title, url) {
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    text: 'شاهد هذا الإعلان على قشاقيش',
+                    url: url
+                }).catch(console.error);
+            } else {
+                // نسخ الرابط كحل بديل
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('تم نسخ رابط الإعلان! يمكنك مشاركته الآن.');
+                }).catch(() => {
+                    // فتح نافذة مشاركة عبر واتساب
+                    window.open(`https://api.whatsapp.com/send?text=شاهد هذا الإعلان: ${title} ${url}`, '_blank');
+                });
+            }
+        }
+
+        // ========== تأثير ظهور البطاقات ==========
+        document.querySelectorAll('.ad-card').forEach((card, i) => {
+            card.style.animationDelay = `${i * 0.05}s`;
+        });
     </script>
 
+    <!-- كود AdSense (موجود بالفعل) -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1382614013492962"
      crossorigin="anonymous"></script>
 </body>
