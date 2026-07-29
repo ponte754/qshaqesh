@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إضافة إعلان جديد - قشاقيش</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <meta name="google-adsense-account" content="ca-pub-1382614013492962">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1382614013492962"
-     crossorigin="anonymous"></script>
     <style>
+        /* أنماط إضافية لرفع الصور المتعددة */
         .images-upload {
             border: 2px dashed #ddd;
             border-radius: 10px;
@@ -16,12 +14,14 @@
             background: #f9f9f9;
             margin-bottom: 15px;
         }
+        
         .images-label {
             font-weight: bold;
             display: block;
             margin-bottom: 10px;
             color: #333;
         }
+        
         .images-input {
             width: 100%;
             padding: 10px;
@@ -29,12 +29,14 @@
             border-radius: 5px;
             background: white;
         }
+        
         .images-preview {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             margin-top: 15px;
         }
+        
         .preview-item {
             position: relative;
             width: 100px;
@@ -44,11 +46,13 @@
             border: 2px solid #ddd;
             background: white;
         }
+        
         .preview-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
+        
         .remove-image {
             position: absolute;
             top: -8px;
@@ -65,78 +69,18 @@
             font-size: 14px;
             font-weight: bold;
         }
+        
         .image-counter {
             font-size: 12px;
             color: #666;
             margin-top: 8px;
         }
+        
         .form-help {
             font-size: 12px;
             color: #888;
             display: block;
             margin-top: 5px;
-        }
-        .features-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border: 1px solid #e2e8f0;
-        }
-        .feature-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .feature-item label {
-            font-weight: 600;
-            color: #1e293b;
-            font-size: 0.95rem;
-        }
-        .feature-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            accent-color: #facc15;
-            cursor: pointer;
-        }
-        .feature-item select {
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            background: white;
-            font-size: 0.95rem;
-            flex: 1;
-        }
-        .feature-item input[type="text"] {
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            font-size: 0.95rem;
-            flex: 1;
-            background: white;
-        }
-        .currency-select {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .currency-select select {
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            background: white;
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #1e293b;
-            cursor: pointer;
-        }
-        @media (max-width: 768px) {
-            .features-grid {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
@@ -194,20 +138,10 @@
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="price">السعر *</label>
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <input type="number" id="price" name="price" step="0.01" required
-                                   placeholder="المبلغ"
-                                   value="{{ form_data.get('price', '') if form_data else '' }}"
-                                   style="flex: 2; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                            <div class="currency-select">
-                                <select id="currency" name="currency" style="padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: white;">
-                                    <option value="ليرة سورية" {% if form_data and form_data.get('currency') == 'ليرة سورية' %}selected{% endif %}>ليرة سورية</option>
-                                    <option value="دولار" {% if form_data and form_data.get('currency') == 'دولار' %}selected{% endif %}>دولار</option>
-                                </select>
-                            </div>
-                        </div>
-                        <small class="form-help">حدد المبلغ واختر العملة (ليرة سورية أو دولار)</small>
+                        <label for="price">السعر (ليرة او دولار)</label>
+                        <input type="number" id="price" name="price" step="0.01"
+                               placeholder="مثال: 1500"
+                               value="{{ form_data.get('price', '') if form_data else '' }}">
                     </div>
                     
                     <div class="form-group">
@@ -217,40 +151,8 @@
                                value="{{ form_data.get('phone', '') if form_data else '' }}">
                     </div>
                 </div>
-
-                <div class="features-grid">
-                    <div class="feature-item">
-                        <label for="condition">الحالة</label>
-                        <select id="condition" name="condition">
-                            <option value="جديد" {% if form_data and form_data.get('condition') == 'جديد' %}selected{% endif %}>جديد</option>
-                            <option value="مستعمل" {% if form_data and form_data.get('condition') == 'مستعمل' %}selected{% endif %}>مستعمل</option>
-                            <option value="مجدّد" {% if form_data and form_data.get('condition') == 'مجدّد' %}selected{% endif %}>مجدّد</option>
-                        </select>
-                    </div>
-                    <div class="feature-item">
-                        <label for="negotiable">قابل للتفاوض</label>
-                        <input type="checkbox" id="negotiable" name="negotiable" value="نعم" 
-                               {% if form_data and form_data.get('negotiable') == 'نعم' %}checked{% endif %}>
-                        <span style="font-size: 0.9rem; color: #475569;">نعم</span>
-                    </div>
-                    <div class="feature-item">
-                        <label for="delivery">توصيل متاح</label>
-                        <input type="checkbox" id="delivery" name="delivery" value="نعم"
-                               {% if form_data and form_data.get('delivery') == 'نعم' %}checked{% endif %}>
-                        <span style="font-size: 0.9rem; color: #475569;">نعم</span>
-                    </div>
-                    <div class="feature-item">
-                        <label for="brand">العلامة التجارية</label>
-                        <input type="text" id="brand" name="brand" placeholder="مثل: Apple, Samsung..."
-                               value="{{ form_data.get('brand', '') if form_data else '' }}">
-                    </div>
-                    <div class="feature-item" style="grid-column: 1 / -1;">
-                        <label for="model">الموديل / السنة</label>
-                        <input type="text" id="model" name="model" placeholder="مثل: iPhone 13 Pro, 2022..."
-                               value="{{ form_data.get('model', '') if form_data else '' }}">
-                    </div>
-                </div>
                 
+                <!-- قسم رفع الصور المتعددة -->
                 <div class="images-upload">
                     <label class="images-label">صور المنتج (اختياري - حتى 5 صور)</label>
                     <input type="file" id="product_images" name="product_images" multiple 
@@ -267,16 +169,8 @@
                               placeholder="اكتب وصفاً مفصلاً للمنتج...">{{ form_data.get('description', '') if form_data else '' }}</textarea>
                 </div>
                 
-                <div class="info-box" style="background: #f1f5f9; border-right: 4px solid #facc15; padding: 15px; border-radius: 10px; margin: 15px 0;">
-                    <p style="margin: 0; color: #1e293b; font-weight: 600;">✨ مميزات الإعلان المحسّن:</p>
-                    <ul style="margin: 8px 0 0 20px; color: #334155; line-height: 1.8;">
-                        <li>اختيار العملة (ليرة سورية / دولار) لعرض السعر بدقة</li>
-                        <li>تحديد حالة المنتج (جديد / مستعمل / مجدّد)</li>
-                        <li>إمكانية التفاوض على السعر</li>
-                        <li>خيار التوصيل المتاح</li>
-                        <li>إضافة العلامة التجارية والموديل لتوضيح المنتج</li>
-                        <li>رفع متعدد للصور (حتى 5 صور)</li>
-                    </ul>
+                <div class="info-box">
+                    <p>💡 ملاحظة: سيتم إضافة عمولة 15% عند عرض السعر</p>
                 </div>
                 
                 <div class="form-actions">
@@ -326,6 +220,8 @@
                             remainingFiles.forEach(f => dt.items.add(f));
                             input.files = dt.files;
                             counter.textContent = `${input.files.length} من ${maxFiles} صور تم اختيارها`;
+                            
+                            // إعادة معاينة الصور المتبقية
                             const event = new Event('change');
                             input.dispatchEvent(event);
                         };
@@ -337,7 +233,5 @@
             });
         }
     </script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1382614013492962"
-     crossorigin="anonymous"></script>
 </body>
 </html>
