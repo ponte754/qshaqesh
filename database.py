@@ -1,477 +1,382 @@
 import sqlite3
-from datetime import datetime
 import json
+from datetime import datetime
 
-DB_NAME = 'qashqish.db'
+DATABASE = 'database.db'
 
 def get_db():
-    """الحصول على اتصال قاعدة البيانات"""
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
 
 def init_db():
-    """إنشاء الجداول في قاعدة البيانات"""
     conn = get_db()
-    cursor = conn.cursor()
+    c = conn.cursor()
     
     # جدول المستخدمين
-    cursor.execute('''
+    c.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
             password TEXT,
-            login_type TEXT DEFAULT 'normal',
-            google_id TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            auth_type TEXT DEFAULT 'normal',
+            google_id TEXT UNIQUE,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     
-    # جدول الإعلانات
-    cursor.execute('''
+    # جدول الإعلانات (مع الحقول الجديدة)
+    c.execute('''
         CREATE TABLE IF NOT EXISTS ads (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
             category TEXT NOT NULL,
             city TEXT NOT NULL,
-            price TEXT,
+            price TEXT NOT NULL,
             price_value REAL DEFAULT 0,
+            currency TEXT DEFAULT 'ليرة سورية',
+            condition TEXT,
+            negotiable TEXT DEFAULT 'لا',
+            delivery TEXT DEFAULT 'لا',
+            brand TEXT,
+            model TEXT,
             commission REAL DEFAULT 0,
-            description TEXT NOT NULL,
+            description TEXT,
             phone TEXT NOT NULL,
             username TEXT NOT NULL,
-            images TEXT DEFAULT '[]',
-            date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (username) REFERENCES users (username)
+            images TEXT,
+            date TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(username) REFERENCES users(username)
         )
     ''')
     
-    # جدول الحظر (منع البائع)
-    cursor.execute('''
+    # جدول الحظر
+    c.execute('''
         CREATE TABLE IF NOT EXISTS blocks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            blocker_username TEXT NOT NULL,
-            blocked_username TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (blocker_username) REFERENCES users (username),
-            FOREIGN KEY (blocked_username) REFERENCES users (username),
-            UNIQUE(blocker_username, blocked_username)
+            blocker TEXT NOT NULL,
+            blocked TEXT NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(blocker) REFERENCES users(username),
+            FOREIGN KEY(blocked) REFERENCES users(username),
+            UNIQUE(blocker, blocked)
         )
     ''')
     
-    # جدول الرسائل الخاصة
-    cursor.execute('''
+    # جدول الرسائل
+    c.execute('''
         CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            sender_username TEXT NOT NULL,
-            receiver_username TEXT NOT NULL,
-            ad_id INTEGER,
+            sender TEXT NOT NULL,
+            receiver TEXT NOT NULL,
+            ad_id INTEGER NOT NULL,
             subject TEXT NOT NULL,
             message TEXT NOT NULL,
             is_read INTEGER DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (sender_username) REFERENCES users (username),
-            FOREIGN KEY (receiver_username) REFERENCES users (username),
-            FOREIGN KEY (ad_id) REFERENCES ads (id) ON DELETE SET NULL
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(sender) REFERENCES users(username),
+            FOREIGN KEY(receiver) REFERENCES users(username),
+            FOREIGN KEY(ad_id) REFERENCES ads(id)
         )
     ''')
-    
-    # إضافة فهارس لتحسين الأداء
-    cursor.execute('CREATE INDEX IF NOT EXISTS idx_messages_receiver ON messages(receiver_username)')
-    cursor.execute('CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender_username)')
-    cursor.execute('CREATE INDEX IF NOT EXISTS idx_messages_ad ON messages(ad_id)')
-    
-    # التحقق من وجود عمود images وإضافته إذا لم يكن موجوداً (للترقية)
-    try:
-        cursor.execute('ALTER TABLE ads ADD COLUMN images TEXT DEFAULT "[]"')
-    except sqlite3.OperationalError:
-        pass
     
     conn.commit()
     conn.close()
 
 # ===== دوال المستخدمين =====
-def create_user(username, email, password=None, login_type='normal', google_id=None):
-    """إنشاء مستخدم جديد"""
-    conn = get_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute('''
-            INSERT INTO users (username, email, password, login_type, google_id)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (username, email, password, login_type, google_id))
-        conn.commit()
-        return True
-    except sqlite3.IntegrityError:
-        return False
-    finally:
-        conn.close()
-
 def get_user_by_username(username):
-    """الحصول على مستخدم حسب اسم المستخدم"""
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
-    user = cursor.fetchone()
+    c = conn.cursor()
+    c.execute('SELECT * FROM users WHERE username = ?', (username,))
+    row = c.fetchone()
     conn.close()
-    return dict(user) if user else None
+    return dict(row) if row else None
 
 def get_user_by_email(email):
-    """الحصول على مستخدم حسب البريد الإلكتروني"""
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
-    user = cursor.fetchone()
+    c = conn.cursor()
+    c.execute('SELECT * FROM users WHERE email = ?', (email,))
+    row = c.fetchone()
     conn.close()
-    return dict(user) if user else None
+    return dict(row) if row else None
 
 def get_user_by_google_id(google_id):
-    """الحصول على مستخدم حسب Google ID"""
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM users WHERE google_id = ?', (google_id,))
-    user = cursor.fetchone()
+    c = conn.cursor()
+    c.execute('SELECT * FROM users WHERE google_id = ?', (google_id,))
+    row = c.fetchone()
     conn.close()
-    return dict(user) if user else None
+    return dict(row) if row else None
 
-# ===== دوال الإعلانات =====
-def create_ad(title, category, city, price, price_value, commission, description, phone, username, images='[]'):
-    """إنشاء إعلان جديد مع دعم عدة صور"""
+def create_user(username, email, password, auth_type='normal', google_id=None):
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO ads (title, category, city, price, price_value, commission, description, phone, username, images)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (title, category, city, price, price_value, commission, description, phone, username, images))
+    c = conn.cursor()
+    try:
+        c.execute('''
+            INSERT INTO users (username, email, password, auth_type, google_id)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (username, email, password, auth_type, google_id))
+        conn.commit()
+        conn.close()
+        return True
+    except sqlite3.IntegrityError:
+        conn.close()
+        return False
+
+# ===== دوال الإعلانات (مع الحقول الجديدة) =====
+def create_ad(title, category, city, price, price_value, currency, condition, negotiable, delivery, brand, model, commission, description, phone, username, images):
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO ads 
+        (title, category, city, price, price_value, currency, condition, negotiable, delivery, brand, model, commission, description, phone, username, images, date)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    ''', (title, category, city, price, price_value, currency, condition, negotiable, delivery, brand, model, commission, description, phone, username, images))
     conn.commit()
-    ad_id = cursor.lastrowid
+    last_id = c.lastrowid
     conn.close()
-    return ad_id
-
-def get_all_ads(current_username=None):
-    """جلب جميع الإعلانات مع تصفية المحظورين"""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    if current_username:
-        blocked_users = get_blocked_users(current_username)
-        if blocked_users:
-            placeholders = ','.join(['?' for _ in blocked_users])
-            cursor.execute(f'''
-                SELECT * FROM ads 
-                WHERE username NOT IN ({placeholders})
-                ORDER BY id DESC
-            ''', blocked_users)
-        else:
-            cursor.execute('SELECT * FROM ads ORDER BY id DESC')
-    else:
-        cursor.execute('SELECT * FROM ads ORDER BY id DESC')
-    
-    ads = cursor.fetchall()
-    conn.close()
-    return [dict(ad) for ad in ads]
+    return last_id
 
 def get_ad_by_id(ad_id):
-    """جلب إعلان حسب المعرف"""
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM ads WHERE id = ?', (ad_id,))
-    ad = cursor.fetchone()
+    c = conn.cursor()
+    c.execute('SELECT * FROM ads WHERE id = ?', (ad_id,))
+    row = c.fetchone()
     conn.close()
-    if ad:
-        ad_dict = dict(ad)
-        ad_dict['images_list'] = json.loads(ad_dict.get('images', '[]'))
-        return ad_dict
-    return None
+    return dict(row) if row else None
+
+def get_all_ads(current_username=None):
+    conn = get_db()
+    c = conn.cursor()
+    query = 'SELECT * FROM ads ORDER BY date DESC'
+    if current_username:
+        # استثناء الإعلانات من المستخدمين المحظورين
+        c.execute('''
+            SELECT ads.* FROM ads
+            WHERE NOT EXISTS (
+                SELECT 1 FROM blocks 
+                WHERE blocker = ? AND blocked = ads.username
+            )
+            ORDER BY date DESC
+        ''', (current_username,))
+    else:
+        c.execute(query)
+    rows = c.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
 
 def get_ads_by_username(username, current_username=None):
-    """جلب إعلانات مستخدم معين مع مراعاة الحظر"""
     conn = get_db()
-    cursor = conn.cursor()
-    
-    if current_username == username:
-        cursor.execute('SELECT * FROM ads WHERE username = ? ORDER BY id DESC', (username,))
+    c = conn.cursor()
+    if current_username and current_username != username:
+        c.execute('''
+            SELECT ads.* FROM ads
+            WHERE ads.username = ? AND NOT EXISTS (
+                SELECT 1 FROM blocks 
+                WHERE blocker = ? AND blocked = ads.username
+            )
+            ORDER BY date DESC
+        ''', (username, current_username))
     else:
-        if current_username and is_user_blocked(username, current_username):
-            cursor.execute('SELECT * FROM ads WHERE 1=0')
-        else:
-            cursor.execute('SELECT * FROM ads WHERE username = ? ORDER BY id DESC', (username,))
-    
-    ads = cursor.fetchall()
+        c.execute('SELECT * FROM ads WHERE username = ? ORDER BY date DESC', (username,))
+    rows = c.fetchall()
     conn.close()
-    return [dict(ad) for ad in ads]
+    return [dict(row) for row in rows]
 
-def update_ad(ad_id, title, category, city, price, price_value, commission, description, phone, images=None):
-    """تحديث إعلان"""
+def update_ad(ad_id, title, category, city, price, price_value, currency, condition, negotiable, delivery, brand, model, commission, description, phone, images):
     conn = get_db()
-    cursor = conn.cursor()
-    if images is not None:
-        cursor.execute('''
-            UPDATE ads 
-            SET title=?, category=?, city=?, price=?, price_value=?, commission=?, description=?, phone=?, images=?, date=CURRENT_TIMESTAMP
-            WHERE id=?
-        ''', (title, category, city, price, price_value, commission, description, phone, images, ad_id))
-    else:
-        cursor.execute('''
-            UPDATE ads 
-            SET title=?, category=?, city=?, price=?, price_value=?, commission=?, description=?, phone=?, date=CURRENT_TIMESTAMP
-            WHERE id=?
-        ''', (title, category, city, price, price_value, commission, description, phone, ad_id))
+    c = conn.cursor()
+    c.execute('''
+        UPDATE ads SET
+            title = ?,
+            category = ?,
+            city = ?,
+            price = ?,
+            price_value = ?,
+            currency = ?,
+            condition = ?,
+            negotiable = ?,
+            delivery = ?,
+            brand = ?,
+            model = ?,
+            commission = ?,
+            description = ?,
+            phone = ?,
+            images = ?
+        WHERE id = ?
+    ''', (title, category, city, price, price_value, currency, condition, negotiable, delivery, brand, model, commission, description, phone, images, ad_id))
     conn.commit()
     conn.close()
 
 def delete_ad(ad_id):
-    """حذف إعلان"""
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM ads WHERE id = ?', (ad_id,))
+    c = conn.cursor()
+    c.execute('DELETE FROM ads WHERE id = ?', (ad_id,))
     conn.commit()
     conn.close()
 
 def search_ads(query, category, city, current_username=None):
-    """البحث في الإعلانات مع تصفية المحظورين"""
     conn = get_db()
-    cursor = conn.cursor()
-    
+    c = conn.cursor()
     sql = 'SELECT * FROM ads WHERE 1=1'
     params = []
     
-    if current_username:
-        blocked_users = get_blocked_users(current_username)
-        if blocked_users:
-            placeholders = ','.join(['?' for _ in blocked_users])
-            sql += f' AND username NOT IN ({placeholders})'
-            params.extend(blocked_users)
-    
     if query:
         sql += ' AND (title LIKE ? OR description LIKE ?)'
-        params.extend([f'%{query}%', f'%{query}%'])
-    
-    if category and category != '':
+        like = f'%{query}%'
+        params.extend([like, like])
+    if category:
         sql += ' AND category = ?'
         params.append(category)
-    
-    if city and city != '':
+    if city:
         sql += ' AND city = ?'
         params.append(city)
     
-    sql += ' ORDER BY id DESC'
+    sql += ' ORDER BY date DESC'
     
-    cursor.execute(sql, params)
-    ads = cursor.fetchall()
+    if current_username:
+        sql = sql.replace('SELECT * FROM ads', '''
+            SELECT ads.* FROM ads
+            WHERE NOT EXISTS (
+                SELECT 1 FROM blocks 
+                WHERE blocker = ? AND blocked = ads.username
+            )
+        ''')
+        params.insert(0, current_username)
+    
+    c.execute(sql, params)
+    rows = c.fetchall()
     conn.close()
-    return [dict(ad) for ad in ads]
+    return [dict(row) for row in rows]
 
-# ===== دوال الحظر (Block System) =====
-def block_user(blocker_username, blocked_username):
-    """حظر مستخدم بواسطة مستخدم آخر"""
-    if blocker_username == blocked_username:
-        return False
+# ===== دوال الحظر =====
+def block_user(blocker, blocked):
     conn = get_db()
-    cursor = conn.cursor()
+    c = conn.cursor()
     try:
-        cursor.execute('''
-            INSERT INTO blocks (blocker_username, blocked_username)
-            VALUES (?, ?)
-        ''', (blocker_username, blocked_username))
+        c.execute('INSERT INTO blocks (blocker, blocked) VALUES (?, ?)', (blocker, blocked))
         conn.commit()
+        conn.close()
         return True
     except sqlite3.IntegrityError:
-        return False
-    finally:
         conn.close()
-
-def unblock_user(blocker_username, blocked_username):
-    """إلغاء حظر مستخدم"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('''
-        DELETE FROM blocks
-        WHERE blocker_username = ? AND blocked_username = ?
-    ''', (blocker_username, blocked_username))
-    conn.commit()
-    affected = cursor.rowcount
-    conn.close()
-    return affected > 0
-
-def is_user_blocked(blocker_username, blocked_username):
-    """التحقق مما إذا كان المستخدم محظوراً"""
-    if not blocker_username or not blocked_username:
         return False
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('''
-        SELECT 1 FROM blocks
-        WHERE blocker_username = ? AND blocked_username = ?
-    ''', (blocker_username, blocked_username))
-    result = cursor.fetchone()
-    conn.close()
-    return result is not None
 
-def get_blocked_users(blocker_username):
-    """الحصول على قائمة المستخدمين الذين قام بحظرهم مستخدم معين"""
+def unblock_user(blocker, blocked):
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('''
-        SELECT blocked_username FROM blocks
-        WHERE blocker_username = ?
-    ''', (blocker_username,))
-    blocked = [row['blocked_username'] for row in cursor.fetchall()]
+    c = conn.cursor()
+    c.execute('DELETE FROM blocks WHERE blocker = ? AND blocked = ?', (blocker, blocked))
+    conn.commit()
+    deleted = c.rowcount
     conn.close()
-    return blocked
+    return deleted > 0
 
-def get_users_who_blocked(blocked_username):
-    """الحصول على قائمة المستخدمين الذين قاموا بحظر مستخدم معين"""
+def is_user_blocked(blocker, blocked):
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('''
-        SELECT blocker_username FROM blocks
-        WHERE blocked_username = ?
-    ''', (blocked_username,))
-    blockers = [row['blocker_username'] for row in cursor.fetchall()]
+    c = conn.cursor()
+    c.execute('SELECT 1 FROM blocks WHERE blocker = ? AND blocked = ?', (blocker, blocked))
+    row = c.fetchone()
     conn.close()
-    return blockers
+    return row is not None
 
 def get_blocked_by_count(username):
-    """الحصول على عدد المستخدمين الذين حظروا مستخدماً معيناً"""
-    return len(get_users_who_blocked(username))
-
-# ===== دوال نظام الرسائل (Messaging System) =====
-def create_message(sender_username, receiver_username, ad_id, subject, message):
-    """إنشاء رسالة جديدة"""
     conn = get_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute('''
-            INSERT INTO messages (sender_username, receiver_username, ad_id, subject, message, is_read, created_at)
-            VALUES (?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)
-        ''', (sender_username, receiver_username, ad_id, subject, message))
-        conn.commit()
-        return cursor.lastrowid
-    except Exception as e:
-        print(f"Error creating message: {e}")
-        return None
-    finally:
-        conn.close()
-
-def get_user_messages(username, include_read=True):
-    """الحصول على جميع رسائل المستخدم (الواردة)"""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    if include_read:
-        cursor.execute('''
-            SELECT m.*, a.title as ad_title, a.images as ad_images
-            FROM messages m
-            LEFT JOIN ads a ON m.ad_id = a.id
-            WHERE m.receiver_username = ?
-            ORDER BY m.created_at DESC
-        ''', (username,))
-    else:
-        cursor.execute('''
-            SELECT m.*, a.title as ad_title, a.images as ad_images
-            FROM messages m
-            LEFT JOIN ads a ON m.ad_id = a.id
-            WHERE m.receiver_username = ? AND m.is_read = 0
-            ORDER BY m.created_at DESC
-        ''', (username,))
-    
-    messages = cursor.fetchall()
+    c = conn.cursor()
+    c.execute('SELECT COUNT(*) FROM blocks WHERE blocked = ?', (username,))
+    count = c.fetchone()[0]
     conn.close()
-    return [dict(msg) for msg in messages]
+    return count
+
+# ===== دوال الرسائل =====
+def create_message(sender, receiver, ad_id, subject, message):
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO messages (sender, receiver, ad_id, subject, message, created_at)
+        VALUES (?, ?, ?, ?, ?, datetime('now'))
+    ''', (sender, receiver, ad_id, subject, message))
+    conn.commit()
+    last_id = c.lastrowid
+    conn.close()
+    return last_id
+
+def get_user_messages(username):
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('''
+        SELECT m.*, a.title as ad_title, a.images as ad_images
+        FROM messages m
+        LEFT JOIN ads a ON m.ad_id = a.id
+        WHERE m.receiver = ?
+        ORDER BY m.created_at DESC
+    ''', (username,))
+    rows = c.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
 
 def get_sent_messages(username):
-    """الحصول على جميع الرسائل المرسلة من المستخدم"""
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('''
+    c = conn.cursor()
+    c.execute('''
         SELECT m.*, a.title as ad_title
         FROM messages m
         LEFT JOIN ads a ON m.ad_id = a.id
-        WHERE m.sender_username = ?
+        WHERE m.sender = ?
         ORDER BY m.created_at DESC
     ''', (username,))
-    messages = cursor.fetchall()
+    rows = c.fetchall()
     conn.close()
-    return [dict(msg) for msg in messages]
+    return [dict(row) for row in rows]
 
-def get_conversation(user1, user2, ad_id=None):
-    """الحصول على محادثة بين مستخدمين"""
+def get_conversation(user1, user2, ad_id):
     conn = get_db()
-    cursor = conn.cursor()
-    
-    if ad_id:
-        cursor.execute('''
-            SELECT * FROM messages 
-            WHERE ((sender_username = ? AND receiver_username = ?) OR (sender_username = ? AND receiver_username = ?))
-            AND ad_id = ?
-            ORDER BY created_at ASC
-        ''', (user1, user2, user2, user1, ad_id))
-    else:
-        cursor.execute('''
-            SELECT * FROM messages 
-            WHERE (sender_username = ? AND receiver_username = ?) OR (sender_username = ? AND receiver_username = ?)
-            ORDER BY created_at ASC
-        ''', (user1, user2, user2, user1))
-    
-    messages = cursor.fetchall()
+    c = conn.cursor()
+    c.execute('''
+        SELECT m.*, a.title as ad_title
+        FROM messages m
+        LEFT JOIN ads a ON m.ad_id = a.id
+        WHERE ((sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?))
+        AND m.ad_id = ?
+        ORDER BY m.created_at ASC
+    ''', (user1, user2, user2, user1, ad_id))
+    rows = c.fetchall()
     conn.close()
-    return [dict(msg) for msg in messages]
+    return [dict(row) for row in rows]
 
 def mark_message_as_read(message_id):
-    """تحديد رسالة كمقروءة"""
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('UPDATE messages SET is_read = 1 WHERE id = ?', (message_id,))
-    conn.commit()
-    conn.close()
-
-def mark_all_messages_as_read(username):
-    """تحديد جميع رسائل المستخدم كمقروءة"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('UPDATE messages SET is_read = 1 WHERE receiver_username = ?', (username,))
+    c = conn.cursor()
+    c.execute('UPDATE messages SET is_read = 1 WHERE id = ?', (message_id,))
     conn.commit()
     conn.close()
 
 def get_unread_count(username):
-    """الحصول على عدد الرسائل غير المقروءة للمستخدم"""
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT COUNT(*) as count FROM messages WHERE receiver_username = ? AND is_read = 0', (username,))
-    count = cursor.fetchone()['count']
+    c = conn.cursor()
+    c.execute('SELECT COUNT(*) FROM messages WHERE receiver = ? AND is_read = 0', (username,))
+    count = c.fetchone()[0]
     conn.close()
     return count
 
 def delete_message(message_id, username):
-    """حذف رسالة (فقط للمستلم)"""
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM messages WHERE id = ? AND receiver_username = ?', (message_id, username))
+    c = conn.cursor()
+    c.execute('DELETE FROM messages WHERE id = ? AND (sender = ? OR receiver = ?)', (message_id, username, username))
     conn.commit()
-    affected = cursor.rowcount
+    deleted = c.rowcount
     conn.close()
-    return affected > 0
+    return deleted > 0
 
-def delete_conversation(user1, user2, ad_id=None):
-    """حذف محادثة كاملة بين مستخدمين"""
+def delete_conversation(user1, user2, ad_id):
     conn = get_db()
-    cursor = conn.cursor()
-    
-    if ad_id:
-        cursor.execute('''
-            DELETE FROM messages 
-            WHERE ((sender_username = ? AND receiver_username = ?) OR (sender_username = ? AND receiver_username = ?))
-            AND ad_id = ?
-        ''', (user1, user2, user2, user1, ad_id))
-    else:
-        cursor.execute('''
-            DELETE FROM messages 
-            WHERE (sender_username = ? AND receiver_username = ?) OR (sender_username = ? AND receiver_username = ?)
-        ''', (user1, user2, user2, user1))
-    
+    c = conn.cursor()
+    c.execute('''
+        DELETE FROM messages 
+        WHERE ((sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?))
+        AND ad_id = ?
+    ''', (user1, user2, user2, user1, ad_id))
     conn.commit()
-    affected = cursor.rowcount
+    deleted = c.rowcount
     conn.close()
-    return affected
+    return deleted > 0
