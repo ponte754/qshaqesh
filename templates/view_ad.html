@@ -114,12 +114,12 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">السعر:</span>
-                    <span class="info-value price">{{ ad.price }} {{ ad.currency if ad.currency else 'ليرة سورية' }}</span>
+                    <span class="info-value price">{{ ad.price }} {{ ad.get('currency', 'ليرة سورية') }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">الحالة:</span>
                     <span class="info-value">
-                        {% if ad.condition %}
+                        {% if ad.get('condition') %}
                             <span class="feature-tag">{{ ad.condition }}</span>
                         {% else %}
                             غير محدد
@@ -129,7 +129,7 @@
                 <div class="info-row">
                     <span class="info-label">قابل للتفاوض:</span>
                     <span class="info-value">
-                        {% if ad.negotiable == 'نعم' %}
+                        {% if ad.get('negotiable') == 'نعم' %}
                             <span class="feature-tag active">✅ نعم</span>
                         {% else %}
                             <span class="feature-tag inactive">❌ لا</span>
@@ -139,20 +139,20 @@
                 <div class="info-row">
                     <span class="info-label">توصيل متاح:</span>
                     <span class="info-value">
-                        {% if ad.delivery == 'نعم' %}
+                        {% if ad.get('delivery') == 'نعم' %}
                             <span class="feature-tag active">✅ نعم</span>
                         {% else %}
                             <span class="feature-tag inactive">❌ لا</span>
                         {% endif %}
                     </span>
                 </div>
-                {% if ad.brand %}
+                {% if ad.get('brand') %}
                 <div class="info-row">
                     <span class="info-label">العلامة التجارية:</span>
                     <span class="info-value">{{ ad.brand }}</span>
                 </div>
                 {% endif %}
-                {% if ad.model %}
+                {% if ad.get('model') %}
                 <div class="info-row">
                     <span class="info-label">الموديل / السنة:</span>
                     <span class="info-value">{{ ad.model }}</span>
@@ -170,6 +170,10 @@
                     <span class="info-label">تاريخ النشر:</span>
                     <span class="info-value">{{ ad.date }}</span>
                 </div>
+                <div class="info-row">
+                    <span class="info-label">عدد المشاهدات:</span>
+                    <span class="info-value">{{ ad.views|default(0) }}</span>
+                </div>
             </div>
             
             <div class="ad-description-full">
@@ -183,7 +187,7 @@
                     📱 تواصل عبر واتساب
                 </a>
                 <a href="{{ url_for('index') }}" class="back-btn">العودة للإعلانات</a>
-                 <a href="mailto:yazansaher55@gmail.com">ابلاغ عن هذا الإعلان</a>
+                <a href="mailto:yazansaher55@gmail.com">ابلاغ عن هذا الإعلان</a>
                 {% if ad.username == username %}
                 <a href="{{ url_for('edit_ad', ad_id=ad.id) }}" class="edit-btn">تعديل الإعلان</a>
                 <a href="{{ url_for('delete_ad', ad_id=ad.id) }}" class="delete-btn" 
