@@ -265,6 +265,12 @@ def add():
         category = request.form.get('category', '')
         city = request.form.get('city', '')
         price = request.form.get('price', '')
+        currency = request.form.get('currency', 'ليرة سورية')
+        condition = request.form.get('condition', '')
+        negotiable = request.form.get('negotiable', 'لا')
+        delivery = request.form.get('delivery', 'لا')
+        brand = request.form.get('brand', '').strip()
+        model = request.form.get('model', '').strip()
         description = request.form.get('description', '').strip()
         phone = request.form.get('phone', '').strip()
         
@@ -286,6 +292,8 @@ def add():
             errors.append('القسم مطلوب')
         if not city:
             errors.append('المدينة مطلوبة')
+        if not price:
+            errors.append('السعر مطلوب')
         if len(images_list) > MAX_IMAGES:
             errors.append(f'الحد الأقصى للصور هو {MAX_IMAGES} صور فقط')
         
@@ -293,7 +301,7 @@ def add():
         price_display = 'غير محدد'
         if price and price.replace('.', '').isdigit():
             price_value = float(price)
-            price_display = f"{price_value:,.2f} "
+            price_display = f"{price_value:,.2f}"
         
         commission = price_value * COMMISSION_RATE if price_value > 0 else 0
         
@@ -305,6 +313,12 @@ def add():
                                      'category': category,
                                      'city': city,
                                      'price': price,
+                                     'currency': currency,
+                                     'condition': condition,
+                                     'negotiable': negotiable,
+                                     'delivery': delivery,
+                                     'brand': brand,
+                                     'model': model,
                                      'description': description,
                                      'phone': phone
                                  })
@@ -317,6 +331,12 @@ def add():
             city=city,
             price=price_display,
             price_value=price_value,
+            currency=currency,
+            condition=condition,
+            negotiable=negotiable,
+            delivery=delivery,
+            brand=brand,
+            model=model,
             commission=commission,
             description=description,
             phone=phone,
@@ -346,6 +366,12 @@ def edit_ad(ad_id):
         category = request.form.get('category', '')
         city = request.form.get('city', '')
         price = request.form.get('price', '')
+        currency = request.form.get('currency', 'ليرة سورية')
+        condition = request.form.get('condition', '')
+        negotiable = request.form.get('negotiable', 'لا')
+        delivery = request.form.get('delivery', 'لا')
+        brand = request.form.get('brand', '').strip()
+        model = request.form.get('model', '').strip()
         description = request.form.get('description', '').strip()
         phone = request.form.get('phone', '').strip()
         
@@ -353,7 +379,7 @@ def edit_ad(ad_id):
         price_display = 'غير محدد'
         if price and price.replace('.', '').isdigit():
             price_value = float(price)
-            price_display = f"{price_value:,.2f} "
+            price_display = f"{price_value:,.2f}"
         
         commission = price_value * COMMISSION_RATE if price_value > 0 else 0
         
@@ -379,8 +405,24 @@ def edit_ad(ad_id):
         
         images_json = json.dumps(images_list)
         
-        db.update_ad(ad_id, title, category, city, price_display, 
-                    price_value, commission, description, phone, images_json)
+        db.update_ad(
+            ad_id,
+            title=title,
+            category=category,
+            city=city,
+            price=price_display,
+            price_value=price_value,
+            currency=currency,
+            condition=condition,
+            negotiable=negotiable,
+            delivery=delivery,
+            brand=brand,
+            model=model,
+            commission=commission,
+            description=description,
+            phone=phone,
+            images=images_json
+        )
         
         flash('تم تعديل الإعلان بنجاح！', 'success')
         return redirect(url_for('view_ad', ad_id=ad_id))
@@ -453,7 +495,6 @@ def my_ads():
                          email=email, 
                          ads=user_ads,
                          blocked_by_count=blocked_by_count)
-                         
 
 @app.route('/delete_ad/<int:ad_id>')
 @login_required
