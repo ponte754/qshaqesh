@@ -47,6 +47,23 @@
             border-radius: 16px;
             color: #666;
         }
+        .feature-tag {
+            display: inline-block;
+            background: #eef2ff;
+            color: #1e40af;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            margin: 4px 6px 4px 0;
+        }
+        .feature-tag.active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .feature-tag.inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
     </style>
 </head>
 <body>
@@ -96,16 +113,51 @@
                     <span class="info-value">{{ ad.city }}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">السعر الأصلي:</span>
-                    <span class="info-value">{{ ad.price }}</span>
+                    <span class="info-label">السعر:</span>
+                    <span class="info-value price">{{ ad.price }} {{ ad.currency if ad.currency else 'ليرة سورية' }}</span>
                 </div>
                 <div class="info-row">
-                   
+                    <span class="info-label">الحالة:</span>
+                    <span class="info-value">
+                        {% if ad.condition %}
+                            <span class="feature-tag">{{ ad.condition }}</span>
+                        {% else %}
+                            غير محدد
+                        {% endif %}
+                    </span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">السعر النهائي:</span>
-                    <span class="info-value price">{{ ad.price_value|round(2) if ad.price_value > 0 else ad.price }}</span>
+                    <span class="info-label">قابل للتفاوض:</span>
+                    <span class="info-value">
+                        {% if ad.negotiable == 'نعم' %}
+                            <span class="feature-tag active">✅ نعم</span>
+                        {% else %}
+                            <span class="feature-tag inactive">❌ لا</span>
+                        {% endif %}
+                    </span>
                 </div>
+                <div class="info-row">
+                    <span class="info-label">توصيل متاح:</span>
+                    <span class="info-value">
+                        {% if ad.delivery == 'نعم' %}
+                            <span class="feature-tag active">✅ نعم</span>
+                        {% else %}
+                            <span class="feature-tag inactive">❌ لا</span>
+                        {% endif %}
+                    </span>
+                </div>
+                {% if ad.brand %}
+                <div class="info-row">
+                    <span class="info-label">العلامة التجارية:</span>
+                    <span class="info-value">{{ ad.brand }}</span>
+                </div>
+                {% endif %}
+                {% if ad.model %}
+                <div class="info-row">
+                    <span class="info-label">الموديل / السنة:</span>
+                    <span class="info-value">{{ ad.model }}</span>
+                </div>
+                {% endif %}
                 <div class="info-row">
                     <span class="info-label">الناشر:</span>
                     <span class="info-value">{{ ad.username }}</span>
@@ -125,15 +177,13 @@
                 <p>{{ ad.description }}</p>
             </div>
 
-            
-            
             <div class="ad-detail-actions">
                 <a href="https://wa.me/{{ ad.phone }}?text=مرحباً، أرغب في الاستفسار عن إعلانك في قشاقيش: {{ ad.title }}" 
                    class="whatsapp-contact-btn" target="_blank">
                     📱 تواصل عبر واتساب
                 </a>
                 <a href="{{ url_for('index') }}" class="back-btn">العودة للإعلانات</a>
-                 <a href="mailto:yazansaher55@gmail.com">ابلاغ عن هذه الاعلان</a>
+                 <a href="mailto:yazansaher55@gmail.com">ابلاغ عن هذا الإعلان</a>
                 {% if ad.username == username %}
                 <a href="{{ url_for('edit_ad', ad_id=ad.id) }}" class="edit-btn">تعديل الإعلان</a>
                 <a href="{{ url_for('delete_ad', ad_id=ad.id) }}" class="delete-btn" 
