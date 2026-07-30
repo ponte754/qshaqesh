@@ -6,7 +6,7 @@
     <title>{{ ad.title }} - قشاقيش</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        .ad-images-gallery {
+       .ad-images-gallery {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 15px;
@@ -44,217 +44,11 @@
             border-radius: 16px;
             color: #666;
         }
-        /* تنسيق خاص للشعر */
-        .poetry-section {
-            background: linear-gradient(135deg, #fdf6e3, #f5e6ca);
-            border-radius: 20px;
-            padding: 30px;
-            margin: 20px 0 30px;
-            border-right: 6px solid #b8860b;
-            box-shadow: 0 4px 20px rgba(184, 134, 11, 0.15);
-            font-family: 'Amiri', 'Traditional Arabic', serif;
-        }
-        .poetry-section h2 {
-            color: #8b6914;
-            font-size: 26px;
-            text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 2px dashed #d4a843;
-            padding-bottom: 10px;
-        }
-        .poetry-verse {
-            font-size: 22px;
-            line-height: 2.2;
-            text-align: center;
-            color: #4a3728;
-            padding: 10px 0;
-            font-weight: 500;
-        }
-        .poetry-verse::before {
-            content: "❀ ";
-            color: #b8860b;
-        }
-        .poetry-verse::after {
-            content: " ❀";
-            color: #b8860b;
-        }
-        .poetry-footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 16px;
-            color: #8b7355;
-            font-style: italic;
-        }
-        /* تنسيق السعر بدون عمولة */
-        .price-no-commission {
-            background: #2e7d32;
-            color: white;
-            padding: 10px 25px;
-            border-radius: 30px;
-            font-size: 24px;
-            font-weight: bold;
-            display: inline-block;
-            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
-        }
-        .price-label {
-            font-size: 16px;
-            font-weight: normal;
-            opacity: 0.9;
-        }
-        /* تنسيق عام */
-        .ad-detail-box {
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            padding: 35px;
-            border-radius: 24px;
-            box-shadow: 0 8px 40px rgba(0,0,0,0.08);
-        }
-        .ad-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px 30px;
-            background: #faf8f5;
-            padding: 20px 25px;
-            border-radius: 16px;
-            margin: 20px 0;
-        }
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px solid #f0ece6;
-        }
-        .info-row:last-child {
-            border-bottom: none;
-        }
-        .info-label {
-            color: #7a6a5a;
-            font-weight: 500;
-        }
-        .info-value {
-            font-weight: 600;
-            color: #2d2a24;
-        }
-        .info-value.price {
-            color: #2e7d32;
-            font-size: 20px;
-        }
-        .ad-description-full {
-            background: #faf8f5;
-            padding: 20px 25px;
-            border-radius: 16px;
-            margin: 20px 0;
-        }
-        .ad-description-full h3 {
-            color: #5a4a3a;
-            margin-bottom: 10px;
-        }
-        .ad-description-full p {
-            line-height: 1.8;
-            color: #3d352e;
-        }
-        .ad-detail-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 25px;
-            justify-content: center;
-        }
-        .whatsapp-contact-btn, .back-btn, .edit-btn, .delete-btn {
-            padding: 12px 28px;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-            display: inline-block;
-        }
-        .whatsapp-contact-btn {
-            background: #25D366;
-            color: white;
-        }
-        .whatsapp-contact-btn:hover {
-            background: #1da851;
-            transform: translateY(-2px);
-        }
-        .back-btn {
-            background: #e8e0d8;
-            color: #4a3a2a;
-        }
-        .back-btn:hover {
-            background: #d5cdc3;
-        }
-        .edit-btn {
-            background: #f5a623;
-            color: white;
-        }
-        .edit-btn:hover {
-            background: #d48f1a;
-        }
-        .delete-btn {
-            background: #e74c3c;
-            color: white;
-        }
-        .delete-btn:hover {
-            background: #c0392b;
-        }
-        /* رأس الصفحة */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 40px;
-            background: white;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.06);
-        }
-        .logo {
-            font-size: 28px;
-            font-weight: bold;
-            color: #b8860b;
-            text-decoration: none;
-        }
-        .navbar a {
-            margin-right: 20px;
-            text-decoration: none;
-            color: #3d352e;
-            font-weight: 500;
-        }
-        .navbar a:hover {
-            color: #b8860b;
-        }
-        .logout-btn {
-            color: #e74c3c !important;
-        }
-        .welcome-text {
-            color: #7a6a5a;
-            margin-left: 15px;
-        }
-        .main-container {
-            padding: 30px 20px;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        @media (max-width: 700px) {
-            .ad-info {
-                grid-template-columns: 1fr;
-            }
-            header {
-                flex-direction: column;
-                gap: 10px;
-                padding: 15px;
-            }
-            .ad-detail-box {
-                padding: 20px;
-            }
-            .poetry-verse {
-                font-size: 18px;
-            }
-        }
     </style>
 </head>
 <body>
     <header>
-        <a href="{{ url_for('index') }}" class="logo">Zoon</a>
+        <a href="{{ url_for('index') }}" class="logo">قشاقيش</a>
         <nav class="navbar">
             <span class="welcome-text">مرحباً {{ username }}!</span>
             <a href="{{ url_for('index') }}">الرئيسية</a>
@@ -267,25 +61,7 @@
     <div class="main-container">
         <div class="ad-detail-box">
             
-            <!-- قسم الشعر بدلاً من العمولة -->
-            <div class="poetry-section">
-                <h2>✧ أبيات شعرية ✧</h2>
-                <div class="poetry-verse">
-                    يا ربّ إنّي أسألُ العفوَ والرضا<br>
-                    وقلباً نقياً كالسماءِ صفاءْ
-                </div>
-                <div class="poetry-verse">
-                    وارزقني الإخلاصَ في كلِّ ما<br>
-                    أقولُ وأفعلُ يا خيرَ الرجاءْ
-                </div>
-                <div class="poetry-verse">
-                    واجعلْ حياتي كلَّها للهِ<br>
-                    رضواناً وطُهراً كالضياءْ
-                </div>
-                <div class="poetry-footer">
-                    — مناجاة الروح
-                </div>
-            </div>
+           
             
             <!-- عرض الصور المتعددة -->
             {% if ad.images_list and ad.images_list|length > 0 %}
@@ -332,7 +108,7 @@
                     <span class="info-value">{{ ad.username }}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">رقم الجوال:</span>
+                    <span class="info-label">رقم الهاتف:</span>
                     <span class="info-value phone">{{ ad.phone }}</span>
                 </div>
                 <div class="info-row">
@@ -347,7 +123,7 @@
             </div>
              
             <div class="ad-detail-actions">
-                <a href="https://wa.me/{{ ad.phone }}?text=مرحباً، أرغب في الاستفسار عن إعلانك في Zoon: {{ ad.title }}" 
+                <a href="https://wa.me/{{ ad.phone }}?text=مرحباً، أرغب في الاستفسار عن إعلانك في قشاقيش : {{ ad.title }}" 
                    class="whatsapp-contact-btn" target="_blank">
                     📱 تواصل عبر واتساب
                 </a>
