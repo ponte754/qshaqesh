@@ -276,4 +276,23 @@
                         removeBtn.className = 'remove-image';
                         removeBtn.innerHTML = '×';
                         removeBtn.onclick = function() {
-                            preview
+                            previewItem.remove();
+                            const dt = new DataTransfer();
+                            const remainingFiles = Array.from(input.files).filter((_, i) => i !== index);
+                            remainingFiles.forEach(f => dt.items.add(f));
+                            input.files = dt.files;
+                            counter.textContent = `${input.files.length} من ${maxFiles} صور تم اختيارها`;
+                            
+                            const event = new Event('change');
+                            input.dispatchEvent(event);
+                        };
+                        previewItem.appendChild(removeBtn);
+                    };
+                    preview.appendChild(previewItem);
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
