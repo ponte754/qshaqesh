@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ ad.title }} - قشاقيش</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-       .ad-images-gallery {
+        .ad-images-gallery {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 15px;
@@ -44,25 +45,45 @@
             border-radius: 16px;
             color: #666;
         }
+        .condition-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .condition-new {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .condition-used {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .condition-refurbished {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+        .features-list {
+            white-space: pre-line;
+            line-height: 1.8;
+        }
     </style>
 </head>
 <body>
     <header>
-        <a href="{{ url_for('index') }}" class="logo">قشاقيش</a>
+        <a href="{{ url_for('index') }}" class="logo"><i class="fas fa-tag"></i> قشاقيش</a>
         <nav class="navbar">
-            <span class="welcome-text">مرحباً {{ username }}!</span>
-            <a href="{{ url_for('index') }}">الرئيسية</a>
-            <a href="{{ url_for('my_ads') }}">إعلاناتي</a>
-            <a href="{{ url_for('add') }}">إضافة إعلان</a>
-            <a href="{{ url_for('logout') }}" class="logout-btn">تسجيل خروج</a>
+            <span class="welcome-text"><i class="fas fa-user-circle"></i> مرحباً {{ username }}!</span>
+            <a href="{{ url_for('index') }}"><i class="fas fa-home"></i> الرئيسية</a>
+            <a href="{{ url_for('my_ads') }}"><i class="fas fa-list-ul"></i> إعلاناتي</a>
+            <a href="{{ url_for('add') }}"><i class="fas fa-plus-circle"></i> إضافة إعلان</a>
+            <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</a>
         </nav>
     </header>
 
     <div class="main-container">
         <div class="ad-detail-box">
-            
-           
-            
             <!-- عرض الصور المتعددة -->
             {% if ad.images_list and ad.images_list|length > 0 %}
                 {% if ad.images_list|length == 1 %}
@@ -80,7 +101,7 @@
                 {% endif %}
             {% else %}
                 <div class="no-image">
-                    <p>📷 لا توجد صور لهذا الإعلان</p>
+                    <p><i class="fas fa-image"></i> لا توجد صور لهذا الإعلان</p>
                 </div>
             {% endif %}
             
@@ -88,55 +109,102 @@
             
             <div class="ad-info">
                 <div class="info-row">
-                    <span class="info-label">القسم:</span>
+                    <span class="info-label"><i class="fas fa-tag"></i> القسم:</span>
                     <span class="info-value">{{ ad.category }}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">المدينة:</span>
+                    <span class="info-label"><i class="fas fa-map-marker-alt"></i> المدينة:</span>
                     <span class="info-value">{{ ad.city }}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">السعر:</span>
-                    <span class="info-value price">
-                        <span class="price-no-commission">
-                            <span class="price-label">💰</span> {{ ad.price }}
-                        </span>
+                    <span class="info-label"><i class="fas fa-check-circle"></i> الحالة:</span>
+                    <span class="info-value">
+                        {% if ad.condition == 'جديد' %}
+                            <span class="condition-badge condition-new">🆕 جديد</span>
+                        {% elif ad.condition == 'مستعمل' %}
+                            <span class="condition-badge condition-used">🔄 مستعمل</span>
+                        {% elif ad.condition == 'مجدد' %}
+                            <span class="condition-badge condition-refurbished">🔧 مجدد</span>
+                        {% else %}
+                            {{ ad.condition }}
+                        {% endif %}
                     </span>
                 </div>
+                {% if ad.brand %}
                 <div class="info-row">
-                    <span class="info-label">الناشر:</span>
+                    <span class="info-label"><i class="fas fa-building"></i> الماركة:</span>
+                    <span class="info-value">{{ ad.brand }}</span>
+                </div>
+                {% endif %}
+                {% if ad.model %}
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-cog"></i> الموديل:</span>
+                    <span class="info-value">{{ ad.model }}</span>
+                </div>
+                {% endif %}
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-dollar-sign"></i> السعر:</span>
+                    <span class="info-value price">{{ ad.price }} {{ ad.currency or 'ليرة سورية' }}</span>
+                </div>
+                {% if ad.price_value > 0 %}
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-percent"></i> عمولة الموقع (15%):</span>
+                    <span class="info-value">{{ (ad.price_value * commission_rate)|round(2) }} {{ ad.currency or 'ليرة سورية' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-hand-holding-usd"></i> السعر النهائي:</span>
+                    <span class="info-value price">{{ (ad.price_value * (1 + commission_rate))|round(2) }} {{ ad.currency or 'ليرة سورية' }}</span>
+                </div>
+                {% endif %}
+                {% if ad.features %}
+                <div class="info-row" style="flex-direction: column; align-items: flex-start;">
+                    <span class="info-label" style="width: 100%; margin-bottom: 5px;"><i class="fas fa-star"></i> المميزات:</span>
+                    <span class="info-value features-list">{{ ad.features }}</span>
+                </div>
+                {% endif %}
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-user"></i> الناشر:</span>
                     <span class="info-value">{{ ad.username }}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">رقم الهاتف:</span>
+                    <span class="info-label"><i class="fas fa-phone"></i> رقم الجوال:</span>
                     <span class="info-value phone">{{ ad.phone }}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">تاريخ النشر:</span>
+                    <span class="info-label"><i class="fas fa-calendar-alt"></i> تاريخ النشر:</span>
                     <span class="info-value">{{ ad.date }}</span>
                 </div>
             </div>
             
             <div class="ad-description-full">
-                <h3>وصف الإعلان:</h3>
+                <h3><i class="fas fa-align-left"></i> وصف الإعلان:</h3>
                 <p>{{ ad.description }}</p>
             </div>
              
             <div class="ad-detail-actions">
-                <a href="https://wa.me/{{ ad.phone }}?text=مرحباً، أرغب في الاستفسار عن إعلانك في قشاقيش : {{ ad.title }}" 
+                <a href="https://wa.me/{{ ad.phone }}?text=مرحباً، أرغب في الاستفسار عن إعلانك في قشاقيش: {{ ad.title }}" 
                    class="whatsapp-contact-btn" target="_blank">
-                    📱 تواصل عبر واتساب
+                    <i class="fab fa-whatsapp"></i> تواصل عبر واتساب
                 </a>
-                <a href="{{ url_for('index') }}" class="back-btn">العودة للإعلانات</a>
+                <a href="{{ url_for('index') }}" class="back-btn"><i class="fas fa-arrow-right"></i> العودة للإعلانات</a>
                 {% if ad.username == username %}
-                <a href="{{ url_for('edit_ad', ad_id=ad.id) }}" class="edit-btn">تعديل الإعلان</a>
-                <a href="mailto:yazansaher55@gmail.com" class="edit-btn" style="background:#8e44ad;">📧 بلاغ</a>
+                <a href="{{ url_for('edit_ad', ad_id=ad.id) }}" class="edit-btn"><i class="fas fa-edit"></i> تعديل الإعلان</a>
                 <a href="{{ url_for('delete_ad', ad_id=ad.id) }}" class="delete-btn" 
-                   onclick="return confirm('هل أنت متأكد من حذف هذا الإعلان؟')">حذف الإعلان</a>
+                   onclick="return confirm('هل أنت متأكد من حذف هذا الإعلان؟')"><i class="fas fa-trash"></i> حذف الإعلان</a>
+                {% else %}
+                <a href="{{ url_for('block_user', blocked_username=ad.username) }}" class="block-btn" 
+                   onclick="return confirm('هل تريد حظر هذا المستخدم؟ لن تظهر إعلاناته بعد الآن.')">
+                    <i class="fas fa-ban"></i> حظر المستخدم
+                </a>
+                <a href="{{ url_for('send_message', ad_id=ad.id) }}" class="message-btn">
+                    <i class="fas fa-envelope"></i> إرسال رسالة
+                </a>
+                <a href="mailto:yazansaher55@gmail.com?subject=تبليغ عن إعلان: {{ ad.title }}" class="report-btn">
+                    <i class="fas fa-flag"></i> تبليغ عن الإعلان
+                </a>
                 {% endif %}
             </div>
         </div>
-        
     </div>
 
     <script>
