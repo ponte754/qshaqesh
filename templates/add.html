@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إضافة إعلان جديد - قشاقيش</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* أنماط إضافية لرفع الصور المتعددة */
         .images-upload {
             border: 2px dashed #ddd;
             border-radius: 10px;
@@ -82,33 +82,46 @@
             display: block;
             margin-top: 5px;
         }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+        }
     </style>
 </head>
 <body>
     <header>
-        <a href="{{ url_for('index') }}" class="logo">قشاقيش</a>
+        <a href="{{ url_for('index') }}" class="logo"><i class="fas fa-tag"></i> قشاقيش</a>
         <nav class="navbar">
-            <a href="{{ url_for('index') }}">الرئيسية</a>
-            <a href="{{ url_for('my_ads') }}">إعلاناتي</a>
-            <a href="{{ url_for('logout') }}" class="logout-btn">تسجيل خروج</a>
+            <a href="{{ url_for('index') }}"><i class="fas fa-home"></i> الرئيسية</a>
+            <a href="{{ url_for('my_ads') }}"><i class="fas fa-list-ul"></i> إعلاناتي</a>
+            <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</a>
         </nav>
     </header>
 
     <div class="form-container">
         <div class="add-ad-box">
-            <h2>إضافة إعلان جديد</h2>
+            <h2><i class="fas fa-plus-circle"></i> إضافة إعلان جديد</h2>
             
             {% if errors %}
                 <div class="error-message">
                     {% for error in errors %}
-                        <p>{{ error }}</p>
+                        <p><i class="fas fa-exclamation-circle"></i> {{ error }}</p>
                     {% endfor %}
                 </div>
             {% endif %}
             
             <form method="POST" action="{{ url_for('add') }}" class="ad-form" enctype="multipart/form-data">
                 <div class="form-group">
-                    <label for="title">عنوان الإعلان *</label>
+                    <label for="title"><i class="fas fa-heading"></i> عنوان الإعلان *</label>
                     <input type="text" id="title" name="title" required 
                            placeholder="مثال: ايفون 13 للبيع بحالة ممتازة"
                            value="{{ form_data.get('title', '') if form_data else '' }}">
@@ -116,7 +129,7 @@
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="category">القسم *</label>
+                        <label for="category"><i class="fas fa-tag"></i> القسم *</label>
                         <select id="category" name="category" required>
                             <option value="">اختر القسم</option>
                             {% for cat in categories %}
@@ -126,7 +139,7 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="city">المدينة *</label>
+                        <label for="city"><i class="fas fa-map-marker-alt"></i> المدينة *</label>
                         <select id="city" name="city" required>
                             <option value="">اختر المدينة</option>
                             {% for city in cities %}
@@ -138,23 +151,64 @@
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="price">السعر (ليرة او دولار)</label>
-                        <input type="number" id="price" name="price" step="0.01"
+                        <label for="price"><i class="fas fa-dollar-sign"></i> السعر *</label>
+                        <input type="number" id="price" name="price" step="0.01" required
                                placeholder="مثال: 1500"
                                value="{{ form_data.get('price', '') if form_data else '' }}">
                     </div>
                     
                     <div class="form-group">
-                        <label for="phone">رقم الجوال *</label>
-                        <input type="tel" id="phone" name="phone" required 
-                               placeholder="09xxxxxxxx"
-                               value="{{ form_data.get('phone', '') if form_data else '' }}">
+                        <label for="currency"><i class="fas fa-money-bill-wave"></i> العملة *</label>
+                        <select id="currency" name="currency" required>
+                            <option value="ليرة سورية" {% if form_data and form_data.get('currency') == 'ليرة سورية' %}selected{% endif %}>🇸🇾 ليرة سورية</option>
+                            <option value="دولار" {% if form_data and form_data.get('currency') == 'دولار' %}selected{% endif %}>🇺🇸 دولار أمريكي</option>
+                            <option value="يورو" {% if form_data and form_data.get('currency') == 'يورو' %}selected{% endif %}>🇪🇺 يورو</option>
+                        </select>
                     </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="condition"><i class="fas fa-check-circle"></i> حالة المنتج *</label>
+                        <select id="condition" name="condition" required>
+                            <option value="جديد" {% if form_data and form_data.get('condition') == 'جديد' %}selected{% endif %}>🆕 جديد</option>
+                            <option value="مستعمل" {% if form_data and form_data.get('condition') == 'مستعمل' %}selected{% endif %}>🔄 مستعمل</option>
+                            <option value="مجدد" {% if form_data and form_data.get('condition') == 'مجدد' %}selected{% endif %}>🔧 مجدد</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="brand"><i class="fas fa-building"></i> الماركة</label>
+                        <input type="text" id="brand" name="brand"
+                               placeholder="مثال: Apple, Samsung, Toyota"
+                               value="{{ form_data.get('brand', '') if form_data else '' }}">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="model"><i class="fas fa-cog"></i> الموديل / الطراز</label>
+                    <input type="text" id="model" name="model"
+                           placeholder="مثال: iPhone 13, Corolla 2020"
+                           value="{{ form_data.get('model', '') if form_data else '' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="features"><i class="fas fa-star"></i> المميزات (اختياري)</label>
+                    <textarea id="features" name="features" rows="3"
+                              placeholder="اذكر مميزات المنتج...&#10;مثال:&#10;- شاشة OLED&#10;- بطارية تدوم طويلاً&#10;- كاميرا بدقة عالية">{{ form_data.get('features', '') if form_data else '' }}</textarea>
+                    <small class="form-help">يمكنك كتابة المميزات بشكل نقطي أو فقرة قصيرة</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone"><i class="fas fa-phone"></i> رقم الجوال *</label>
+                    <input type="tel" id="phone" name="phone" required 
+                           placeholder="09xxxxxxxx"
+                           value="{{ form_data.get('phone', '') if form_data else '' }}">
                 </div>
                 
                 <!-- قسم رفع الصور المتعددة -->
                 <div class="images-upload">
-                    <label class="images-label">صور المنتج (اختياري - حتى 5 صور)</label>
+                    <label class="images-label"><i class="fas fa-images"></i> صور المنتج (اختياري - حتى 5 صور)</label>
                     <input type="file" id="product_images" name="product_images" multiple 
                            accept="image/png, image/jpeg, image/jpg, image/gif, image/webp"
                            onchange="previewImages(this)">
@@ -164,18 +218,18 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="description">وصف الإعلان *</label>
+                    <label for="description"><i class="fas fa-align-left"></i> وصف الإعلان *</label>
                     <textarea id="description" name="description" rows="6" required 
                               placeholder="اكتب وصفاً مفصلاً للمنتج...">{{ form_data.get('description', '') if form_data else '' }}</textarea>
                 </div>
                 
                 <div class="info-box">
-                    
+                    <p>💡 ملاحظة: سيتم إضافة عمولة 15% عند عرض السعر</p>
                 </div>
                 
                 <div class="form-actions">
-                    <button type="submit" class="submit-btn">نشر الإعلان</button>
-                    <a href="{{ url_for('index') }}" class="cancel-btn">إلغاء</a>
+                    <button type="submit" class="submit-btn"><i class="fas fa-check"></i> نشر الإعلان</button>
+                    <a href="{{ url_for('index') }}" class="cancel-btn"><i class="fas fa-times"></i> إلغاء</a>
                 </div>
             </form>
         </div>
@@ -221,7 +275,6 @@
                             input.files = dt.files;
                             counter.textContent = `${input.files.length} من ${maxFiles} صور تم اختيارها`;
                             
-                            // إعادة معاينة الصور المتبقية
                             const event = new Event('change');
                             input.dispatchEvent(event);
                         };
