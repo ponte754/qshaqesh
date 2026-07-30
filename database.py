@@ -10,6 +10,29 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
+def upgrade_db():
+    """ترقية قاعدة البيانات بإضافة الأعمدة الجديدة"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # إضافة أعمدة جديدة إذا لم تكن موجودة
+    columns_to_add = [
+        ('currency', 'TEXT DEFAULT "ليرة سورية"'),
+        ('condition', 'TEXT DEFAULT "جديد"'),
+        ('model', 'TEXT'),
+        ('brand', 'TEXT'),
+        ('features', 'TEXT')
+    ]
+    
+    for col_name, col_type in columns_to_add:
+        try:
+            cursor.execute(f'ALTER TABLE ads ADD COLUMN {col_name} {col_type}')
+        except sqlite3.OperationalError:
+            pass  # العمود موجود بالفعل
+    
+    conn.commit()
+    conn.close()
+
 def init_db():
     """إنشاء الجداول في قاعدة البيانات"""
     conn = get_db()
@@ -28,7 +51,7 @@ def init_db():
         )
     ''')
     
-    # جدول الإعلانات
+    # جدول الإعلانات مع الأعمدة الجديدة
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS ads (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,11 +66,16 @@ def init_db():
             username TEXT NOT NULL,
             images TEXT DEFAULT '[]',
             date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            currency TEXT DEFAULT 'ليرة سورية',
+            condition TEXT DEFAULT 'جديد',
+            model TEXT,
+            brand TEXT,
+            features TEXT,
             FOREIGN KEY (username) REFERENCES users (username)
         )
     ''')
     
-    # جدول الحظر (منع البائع)
+    # جدول الحظر
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS blocks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -77,16 +105,16 @@ def init_db():
         )
     ''')
     
-    # إضافة فهارس لتحسين الأداء
+    # إضافة فهارس
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_messages_receiver ON messages(receiver_username)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender_username)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_messages_ad ON messages(ad_id)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_ads_username ON ads(username)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_ads_category ON ads(category)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_ads_city ON ads(city)')
     
-    # التحقق من وجود عمود images وإضافته إذا لم يكن موجوداً (للترقية)
-    try:
-        cursor.execute('ALTER TABLE ads ADD COLUMN images TEXT DEFAULT "[]"')
-    except sqlite3.OperationalError:
-        pass
+    # ترقية قاعدة البيانات
+    upgrade_db()
     
     conn.commit()
     conn.close()
@@ -136,14 +164,20 @@ def get_user_by_google_id(google_id):
     return dict(user) if user else None
 
 # ===== دوال الإعلانات =====
-def create_ad(title, category, city, price, price_value, commission, description, phone, username, images='[]'):
-    """إنشاء إعلان جديد مع دعم عدة صور"""
+def create_ad(title, category, city, price, price_value, commission, description, phone, username, images='[]',
+              currency='ليرة سورية', condition='جديد', brand=None, model=None, features=None):
+    """إنشاء إعلان جديد مع الحقول الجديدة"""
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO ads (title, category, city, price, price_value, commission, description, phone, username, images)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (title, category, city, price, price_value, commission, description, phone, username, images))
+        INSERT INTO ads (
+            title, category, city, price, price_value, commission, 
+            description, phone, username, images,
+            currency, condition, brand, model, features
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (title, category, city, price, price_value, commission, 
+          description, phone, username, images,
+          currency, condition, brand, model, features))
     conn.commit()
     ad_id = cursor.lastrowid
     conn.close()
@@ -181,7 +215,10 @@ def get_ad_by_id(ad_id):
     conn.close()
     if ad:
         ad_dict = dict(ad)
-        ad_dict['images_list'] = json.loads(ad_dict.get('images', '[]'))
+        try:
+            ad_dict['images_list'] = json.loads(ad_dict.get('images', '[]'))
+        except:
+            ad_dict['images_list'] = []
         return ad_dict
     return None
 
@@ -193,7 +230,7 @@ def get_ads_by_username(username, current_username=None):
     if current_username == username:
         cursor.execute('SELECT * FROM ads WHERE username = ? ORDER BY id DESC', (username,))
     else:
-        if current_username and is_user_blocked(username, current_username):
+        if current_username and is_user_blocked(current_username, username):
             cursor.execute('SELECT * FROM ads WHERE 1=0')
         else:
             cursor.execute('SELECT * FROM ads WHERE username = ? ORDER BY id DESC', (username,))
@@ -202,22 +239,35 @@ def get_ads_by_username(username, current_username=None):
     conn.close()
     return [dict(ad) for ad in ads]
 
-def update_ad(ad_id, title, category, city, price, price_value, commission, description, phone, images=None):
-    """تحديث إعلان"""
+def update_ad(ad_id, title, category, city, price, price_value, commission, description, phone, 
+              images=None, currency='ليرة سورية', condition='جديد', brand=None, model=None, features=None):
+    """تحديث إعلان مع الحقول الجديدة"""
     conn = get_db()
     cursor = conn.cursor()
+    
     if images is not None:
         cursor.execute('''
             UPDATE ads 
-            SET title=?, category=?, city=?, price=?, price_value=?, commission=?, description=?, phone=?, images=?, date=CURRENT_TIMESTAMP
+            SET title=?, category=?, city=?, price=?, price_value=?, 
+                commission=?, description=?, phone=?, images=?, 
+                currency=?, condition=?, brand=?, model=?, features=?,
+                date=CURRENT_TIMESTAMP
             WHERE id=?
-        ''', (title, category, city, price, price_value, commission, description, phone, images, ad_id))
+        ''', (title, category, city, price, price_value, commission, 
+              description, phone, images, currency, condition, brand, 
+              model, features, ad_id))
     else:
         cursor.execute('''
             UPDATE ads 
-            SET title=?, category=?, city=?, price=?, price_value=?, commission=?, description=?, phone=?, date=CURRENT_TIMESTAMP
+            SET title=?, category=?, city=?, price=?, price_value=?, 
+                commission=?, description=?, phone=?, 
+                currency=?, condition=?, brand=?, model=?, features=?,
+                date=CURRENT_TIMESTAMP
             WHERE id=?
-        ''', (title, category, city, price, price_value, commission, description, phone, ad_id))
+        ''', (title, category, city, price, price_value, commission, 
+              description, phone, currency, condition, brand, 
+              model, features, ad_id))
+    
     conn.commit()
     conn.close()
 
@@ -245,8 +295,8 @@ def search_ads(query, category, city, current_username=None):
             params.extend(blocked_users)
     
     if query:
-        sql += ' AND (title LIKE ? OR description LIKE ?)'
-        params.extend([f'%{query}%', f'%{query}%'])
+        sql += ' AND (title LIKE ? OR description LIKE ? OR brand LIKE ? OR model LIKE ?)'
+        params.extend([f'%{query}%', f'%{query}%', f'%{query}%', f'%{query}%'])
     
     if category and category != '':
         sql += ' AND category = ?'
@@ -263,7 +313,7 @@ def search_ads(query, category, city, current_username=None):
     conn.close()
     return [dict(ad) for ad in ads]
 
-# ===== دوال الحظر (Block System) =====
+# ===== دوال الحظر =====
 def block_user(blocker_username, blocked_username):
     """حظر مستخدم بواسطة مستخدم آخر"""
     if blocker_username == blocked_username:
@@ -337,7 +387,7 @@ def get_blocked_by_count(username):
     """الحصول على عدد المستخدمين الذين حظروا مستخدماً معيناً"""
     return len(get_users_who_blocked(username))
 
-# ===== دوال نظام الرسائل (Messaging System) =====
+# ===== دوال نظام الرسائل =====
 def create_message(sender_username, receiver_username, ad_id, subject, message):
     """إنشاء رسالة جديدة"""
     conn = get_db()
