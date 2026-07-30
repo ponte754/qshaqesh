@@ -152,7 +152,7 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label"><i class="fas fa-hand-holding-usd"></i> السعر النهائي:</span>
-                    <span class="info-value price">{{ ad.currency or 'ليرة سورية' }}</span>
+                     <span class="info-value price">{{ ad.price }} {{ ad.currency or 'ليرة سورية' }}</span>
                 </div>
                 {% endif %}
                 {% if ad.features %}
