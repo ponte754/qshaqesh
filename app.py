@@ -121,7 +121,6 @@ def inject_globals():
 # ===== الصفحات الرئيسية =====
 @app.route('/')
 def home():
-    # صفحة عامة لا تحتاج تسجيل دخول - تعرض نفس محتوى index ولكن بدون حماية
     username = None
     email = None
     
@@ -136,7 +135,6 @@ def home():
             else:
                 ad['images_list'] = []
         
-        # استخدام نفس قالب index ولكن مع متغير public_mode=True
         return render_template('index.html', 
                              username=username, 
                              email=email, 
@@ -152,7 +150,6 @@ def home():
 
 @app.route('/ad/public/<int:ad_id>')
 def public_view_ad(ad_id):
-    """صفحة عامة لعرض الإعلان - تستخدم نفس قالب view_ad"""
     try:
         ad = db.get_ad_by_id(ad_id)
         
@@ -167,7 +164,6 @@ def public_view_ad(ad_id):
         else:
             ad['images_list'] = []
         
-        # استخدام نفس قالب view_ad ولكن مع public_mode=True
         return render_template('view_ad.html', 
                              ad=ad, 
                              username=None, 
@@ -317,6 +313,11 @@ def add():
         category = request.form.get('category', '')
         city = request.form.get('city', '')
         price = request.form.get('price', '')
+        currency = request.form.get('currency', 'ليرة سورية')
+        condition = request.form.get('condition', 'جديد')
+        brand = request.form.get('brand', '').strip()
+        model = request.form.get('model', '').strip()
+        features = request.form.get('features', '').strip()
         description = request.form.get('description', '').strip()
         phone = request.form.get('phone', '').strip()
         
@@ -338,6 +339,8 @@ def add():
             errors.append('القسم مطلوب')
         if not city:
             errors.append('المدينة مطلوبة')
+        if not price:
+            errors.append('السعر مطلوب')
         if len(images_list) > MAX_IMAGES:
             errors.append(f'الحد الأقصى للصور هو {MAX_IMAGES} صور فقط')
         
@@ -345,7 +348,7 @@ def add():
         price_display = 'غير محدد'
         if price and price.replace('.', '').isdigit():
             price_value = float(price)
-            price_display = f"{price_value:,.2f} "
+            price_display = f"{price_value:,.2f}"
         
         commission = price_value * COMMISSION_RATE if price_value > 0 else 0
         
@@ -357,6 +360,11 @@ def add():
                                      'category': category,
                                      'city': city,
                                      'price': price,
+                                     'currency': currency,
+                                     'condition': condition,
+                                     'brand': brand,
+                                     'model': model,
+                                     'features': features,
                                      'description': description,
                                      'phone': phone
                                  })
@@ -373,7 +381,12 @@ def add():
             description=description,
             phone=phone,
             username=username,
-            images=images_json
+            images=images_json,
+            currency=currency,
+            condition=condition,
+            brand=brand,
+            model=model,
+            features=features
         )
         
         flash('تم نشر الإعلان بنجاح！', 'success')
@@ -398,6 +411,11 @@ def edit_ad(ad_id):
         category = request.form.get('category', '')
         city = request.form.get('city', '')
         price = request.form.get('price', '')
+        currency = request.form.get('currency', 'ليرة سورية')
+        condition = request.form.get('condition', 'جديد')
+        brand = request.form.get('brand', '').strip()
+        model = request.form.get('model', '').strip()
+        features = request.form.get('features', '').strip()
         description = request.form.get('description', '').strip()
         phone = request.form.get('phone', '').strip()
         
@@ -405,7 +423,7 @@ def edit_ad(ad_id):
         price_display = 'غير محدد'
         if price and price.replace('.', '').isdigit():
             price_value = float(price)
-            price_display = f"{price_value:,.2f} "
+            price_display = f"{price_value:,.2f}"
         
         commission = price_value * COMMISSION_RATE if price_value > 0 else 0
         
@@ -432,7 +450,8 @@ def edit_ad(ad_id):
         images_json = json.dumps(images_list)
         
         db.update_ad(ad_id, title, category, city, price_display, 
-                    price_value, commission, description, phone, images_json)
+                    price_value, commission, description, phone, images_json,
+                    currency, condition, brand, model, features)
         
         flash('تم تعديل الإعلان بنجاح！', 'success')
         return redirect(url_for('view_ad', ad_id=ad_id))
@@ -481,7 +500,6 @@ def view_ad(ad_id):
     else:
         ad['images_list'] = []
     
-    # التحقق من حالة الحظر
     is_blocked = db.is_user_blocked(username, ad['username'])
     
     return render_template('view_ad.html', ad=ad, username=username, is_blocked=is_blocked, public_mode=False)
@@ -506,7 +524,6 @@ def my_ads():
                          email=email, 
                          ads=user_ads,
                          blocked_by_count=blocked_by_count)
-                         
 
 @app.route('/delete_ad/<int:ad_id>')
 @login_required
@@ -721,6 +738,7 @@ if __name__ == '__main__':
     ║      ⚡ Debug mode: ON                                   ║
     ║      📁 Upload folder: {UPLOAD_FOLDER}                  ║
     ║      💬 Messaging system: Enabled                        ║
+    ║      ✨ New fields: Currency, Condition, Brand, Model, Features ║
     ║                                                          ║
     ╚══════════════════════════════════════════════════════════╝
     """)
