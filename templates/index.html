@@ -112,8 +112,7 @@
                     
                     <!-- تاريخ النشر وعدد المشاهدات -->
                     <div class="ad-meta">
-                        <span><i class="far fa-clock"></i> {{ ad.created_at.strftime('%Y-%m-%d') if ad.created_at else 'منذ أيام' }}</span>
-                        <span><i class="far fa-eye"></i> {{ ad.views|default(0) }} مشاهدة</span>
+                        
                     </div>
                     
                     <div class="ad-actions">
@@ -138,9 +137,7 @@
     </div>
 
     <!-- زر واتساب عائم -->
-    <a href="https://wa.me/1234567890?text=أهلاً، لدي استفسار عن إعلاناتكم" class="whatsapp-float" target="_blank">
-        <i class="fab fa-whatsapp"></i>
-    </a>
+
 
     <script>
         // ========== الوضع الليلي ==========
